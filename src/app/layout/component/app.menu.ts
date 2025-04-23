@@ -24,6 +24,18 @@ export class AppMenu {
                 label: 'Home',
                 items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
             },
+            {
+                label: 'Modules',
+                items: [
+                    { label: 'Clients', icon: 'pi pi-fw pi-user', routerLink: ['/'] },
+                    { label: 'Vehicules', icon: 'pi pi-fw pi-car', routerLink: ['/'] },
+                    { label: 'Commandes', icon: 'pi pi-fw pi-cart-arrow-down', routerLink: ['/'] },
+                    { label: 'Fournisseurs', icon: 'pi pi-fw pi-shop', routerLink: ['/'] },
+                    { label: 'Pieces', icon: 'pi pi-fw pi-cog', routerLink: ['/'] },
+                    { label: 'Services', icon: 'pi pi-fw pi-wrench', routerLink: ['/'] },
+                    { label: 'Facturation/Devis', icon: 'pi pi-fw pi-receipt', routerLink: ['/'] },
+                ]
+            },
             // {
             //     label: 'UI Components',
             //     items: [
