@@ -27,12 +27,12 @@ export class AppMenu {
             {
                 label: 'Modules',
                 items: [
-                    { label: 'Clients', icon: 'pi pi-fw pi-user', routerLink: ['/clients'] },
+                    { label: 'Clients', icon: 'pi pi-fw pi-user', routerLink: ['/modules/clients'] },
                     { label: 'Vehicules', icon: 'pi pi-fw pi-car', routerLink: ['/'] },
                     { label: 'Commandes', icon: 'pi pi-fw pi-cart-arrow-down', routerLink: ['/'] },
                     { label: 'Fournisseurs', icon: 'pi pi-fw pi-shop', routerLink: ['/'] },
                     { label: 'Pieces', icon: 'pi pi-fw pi-cog', routerLink: ['/'] },
-                    { label: 'Services', icon: 'pi pi-fw pi-wrench', routerLink: ['/'] },
+                    { label: 'Services', icon: 'pi pi-fw pi-wrench', routerLink: ['/modules/services'] },
                     { label: 'Facturation/Devis', icon: 'pi pi-fw pi-receipt', routerLink: ['/'] },
                 ]
             },

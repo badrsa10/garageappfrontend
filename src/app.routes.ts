@@ -4,8 +4,7 @@ import { Dashboard } from './app/pages/dashboard/dashboard';
 import { Documentation } from './app/pages/documentation/documentation';
 import { Landing } from './app/pages/landing/landing';
 import { Notfound } from './app/pages/notfound/notfound';
-import { ProfilClientComponent } from './app/pages/clients/profil-client/profil-client.component';
-import { TableClientsComponent } from './app/pages/clients/table-clients/table-clients.component';
+
 
 export const appRoutes: Routes = [
     {
@@ -13,8 +12,10 @@ export const appRoutes: Routes = [
         component: AppLayout,
         children: [
             { path: '', component: Dashboard },
-            { path: 'clients', component: TableClientsComponent },
-            { path: 'client-profile/:id', component: ProfilClientComponent },
+            // { path: 'clients', component: TableClientsComponent },
+            // { path: 'client-profile/:id', component: ProfilClientComponent },
+            // { path: 'services', component: ServicesComponent },
+            { path: 'modules', loadChildren: () => import('./app/pages/modules/modules.routes') },
             { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
             { path: 'documentation', component: Documentation },
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
