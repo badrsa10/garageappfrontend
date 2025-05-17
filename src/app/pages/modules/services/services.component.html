@@ -1,0 +1,76 @@
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <div class="font-semibold text-xl">Service Management</div>
+        <!-- 🔹 Add Service Button -->
+        <button pButton label="Add Service" class="p-button-success" (click)="serviceDialog = true"></button>
+    </div>
+
+    <!-- 🔹 Services Table -->
+    <p-table #dt [value]="services" dataKey="id_service" [rows]="10" [loading]="loading" [rowHover]="true"
+        [showGridlines]="true" [paginator]="true" [globalFilterFields]="['libelle']" responsiveLayout="scroll">
+
+        <ng-template #caption>
+            <div class="flex justify-between items-center flex-column sm:flex-row">
+                <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash"
+                    (click)="clear(dt)"></button>
+                <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search services" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template #header>
+            <tr>
+                <th style="min-width: 12rem">Service ID</th>
+                <th style="min-width: 15rem">Libelle</th>
+                <th style="min-width: 10rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-service>
+            <tr class="cursor-pointer hover:bg-gray-200">
+                <td>{{ service.id_service }}</td>
+                <td>{{ service.libelle }}</td>
+                <td class="flex gap-2">
+                    <button pButton label="Edit" class="p-button-warning" (click)="editService(service)"></button>
+                    <button pButton label="Delete" class="p-button-danger" (click)="confirmDelete(service)"></button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="3">No services found.</td>
+            </tr>
+        </ng-template>
+
+        <ng-template #loadingbody>
+            <tr>
+                <td colspan="3">Loading service data. Please wait.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- 🔹 Pop-Up Dialog for Adding a Service -->
+<p-dialog header="Add Service" [(visible)]="serviceDialog" [modal]="true" [style]="{ width: '30vw' }">
+    <div class="p-6 space-y-4">
+        <div class="space-y-1">
+            <label class="block text-gray-700 font-medium">Service Name</label>
+            <input type="text" pInputText [(ngModel)]="newService.libelle"
+                class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        </div>
+    </div>
+
+    <ng-template #footer>
+        <div class="flex justify-end space-x-4 p-4 bg-gray-100 rounded-b-lg">
+            <button pButton label="Cancel" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                (click)="serviceDialog = false"></button>
+            <button pButton label="Save" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                (click)="addService()"></button>
+        </div>
+    </ng-template>
+</p-dialog>

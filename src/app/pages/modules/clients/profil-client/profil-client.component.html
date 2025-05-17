@@ -1,0 +1,110 @@
+<div class="p-6 bg-gray-50">
+    <!-- 🔹 Control Panel Above Parallel Sections -->
+<div class="flex justify-between items-center p-4 rounded-lg mb-6">
+    <!-- Left-Aligned Button -->
+    <button 
+        pButton label="Back" 
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-md transition" 
+        (click)="goBack()">
+        Précédent
+    </button>
+
+    <!-- Right-Aligned Buttons -->
+    <div class="flex gap-4">
+        <button 
+            pButton label="Modify Client Info" 
+            class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 shadow-md transition" 
+            (click)="openEditDialog()">
+            Modifier Info
+        </button>
+
+        <button 
+            pButton label="Delete Client" 
+            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 shadow-md transition" 
+           >
+            Supprimer Client
+        </button>
+    </div>
+</div>
+
+
+    <!-- 🔹 Main Layout: Client Info & Vehicles -->
+    <div class="flex flex-col md:flex-row gap-6">
+        <!-- Left Side: Client Information -->
+        <div *ngIf="client" class="w-full md:w-1/3 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Client Profile</h2>
+            <p class="text-gray-700"><strong>Name:</strong> {{ client.nom }} {{ client.prenom }}</p>
+            <p class="text-gray-700"><strong>Email:</strong> {{ client.email }}</p>
+            <p class="text-gray-700"><strong>Phone:</strong> {{ client.tel }}</p>
+            <p class="text-gray-700"><strong>Person Type:</strong> {{ client.type_personne }}</p>
+        </div>
+
+        <!-- Right Side: Vehicles Table -->
+        <div class="w-full md:w-2/3 bg-white p-6 rounded-lg shadow-lg border border-gray-200"
+            *ngIf="vehicules.length > 0">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Vehicles Owned</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-300 text-gray-700">
+                    <thead class="bg-gray-200 text-gray-800">
+                        <tr>
+                            <th class="border p-3">Marque</th>
+                            <th class="border p-3">Modèle</th>
+                            <th class="border p-3">Année</th>
+                            <th class="border p-3">Matricule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let vehicule of vehicules" class="hover:bg-gray-100 transition">
+                            <td class="border p-3">{{ vehicule.marque }}</td>
+                            <td class="border p-3">{{ vehicule.modele }}</td>
+                            <td class="border p-3">{{ vehicule.annee }}</td>
+                            <td class="border p-3">{{ vehicule.matricule }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- No Vehicles Found Message -->
+        <div class="w-full md:w-2/3 bg-white p-6 rounded-lg shadow-lg border border-gray-200 text-gray-500 text-center"
+            *ngIf="vehicules.length === 0">
+            <p>No vehicles found for this client.</p>
+        </div>
+    </div>
+</div>
+
+<p-dialog header="Edit Client Info" [(visible)]="editDialog" [modal]="true" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '30vw' }">
+    <div class="p-6 space-y-4">
+        <div class="space-y-1">
+            <label class="block text-gray-700 font-medium">Name</label>
+            <input type="text" pInputText [(ngModel)]="editedClient.nom" class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        </div>
+
+        <div class="space-y-1">
+            <label class="block text-gray-700 font-medium">First Name</label>
+            <input type="text" pInputText [(ngModel)]="editedClient.prenom" class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        </div>
+
+        <div class="space-y-1">
+            <label class="block text-gray-700 font-medium">Email</label>
+            <input type="email" pInputText [(ngModel)]="editedClient.email" class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        </div>
+
+        <div class="space-y-1">
+            <label class="block text-gray-700 font-medium">Phone</label>
+            <input type="text" pInputText [(ngModel)]="editedClient.tel" class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        </div>
+
+        <div class="space-y-1">
+            <label class="block text-gray-700 font-medium">Person Type</label>
+            <input type="text" pInputText [(ngModel)]="editedClient.type_personne" class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        </div>
+    </div>
+
+    <ng-template #footer>
+        <div class="flex justify-end space-x-4 p-4 bg-gray-100 rounded-b-lg">
+            <button pButton label="Cancel" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600" (click)="editDialog = false">Fermer</button>
+            <button pButton label="Save Changes" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600" (click)="saveClientChanges()">Modifier</button>
+        </div>
+    </ng-template>
+</p-dialog>
