@@ -31,7 +31,7 @@ export class AppMenu {
                     { label: 'Vehicules', icon: 'pi pi-fw pi-car', routerLink: ['/'] },
                     { label: 'Commandes', icon: 'pi pi-fw pi-cart-arrow-down', routerLink: ['/'] },
                     { label: 'Fournisseurs', icon: 'pi pi-fw pi-shop', routerLink: ['/'] },
-                    { label: 'Pieces', icon: 'pi pi-fw pi-cog', routerLink: ['/'] },
+                    { label: 'Pieces', icon: 'pi pi-fw pi-cog', routerLink: ['/modules/pieces'] },
                     { label: 'Services', icon: 'pi pi-fw pi-wrench', routerLink: ['/modules/services'] },
                     { label: 'Facturation/Devis', icon: 'pi pi-fw pi-receipt', routerLink: ['/'] },
                 ]

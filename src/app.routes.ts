@@ -12,9 +12,6 @@ export const appRoutes: Routes = [
         component: AppLayout,
         children: [
             { path: '', component: Dashboard },
-            // { path: 'clients', component: TableClientsComponent },
-            // { path: 'client-profile/:id', component: ProfilClientComponent },
-            // { path: 'services', component: ServicesComponent },
             { path: 'modules', loadChildren: () => import('./app/pages/modules/modules.routes') },
             { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
             { path: 'documentation', component: Documentation },

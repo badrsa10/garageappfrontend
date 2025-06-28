@@ -77,7 +77,9 @@ export class TableClientsComponent implements OnInit {
 
     @ViewChild('filter') filter!: ElementRef;
 
-    constructor(private clientService: ClientService, private messageService: MessageService, private router: Router) { }
+    constructor(private clientService: ClientService, 
+        private messageService: MessageService, 
+        private router: Router) { }
 
     ngOnInit() {
         this.fetchClients();
@@ -85,8 +87,12 @@ export class TableClientsComponent implements OnInit {
 
     navigateToProfile(clientId: string) {
         if (this.router) {
-            this.router.navigate(['/client-profile', clientId]);
+            console.log('Router instance OK');
+            console.log('Client ID:', clientId); 
+            this.router.navigateByUrl(`/modules/client-profile/${clientId}`);
+
         } else {
+            console.log('Router instance not OK');
             console.error('Router instance is undefined.');
         }
     }

@@ -1,0 +1,82 @@
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <div class="font-semibold text-xl">Piece Management</div>
+        <!-- 🔹 Add Piece Button -->
+        <button pButton label="Add Piece" class="p-button-success" (click)="pieceDialog = true"></button>
+    </div>
+
+    <!-- 🔹 Pieces Table -->
+    <p-table #dt [value]="pieces" dataKey="id_piece" [rows]="10" [loading]="loading" [rowHover]="true"
+        [showGridlines]="true" [paginator]="true" [globalFilterFields]="['libelle']" responsiveLayout="scroll">
+
+        <ng-template #caption>
+            <div class="flex justify-between items-center flex-column sm:flex-row">
+                <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash"
+                    (click)="clear(dt)"></button>
+                <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search pieces" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template #header>
+            <tr>
+                <th style="min-width: 12rem">Piece ID</th>
+                <th style="min-width: 15rem">Libelle</th>
+                <th style="min-width: 10rem">Quantity</th>
+                <th style="min-width: 10rem">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-piece>
+            <tr class="cursor-pointer hover:bg-gray-200">
+                <td>{{ piece.id_piece }}</td>
+                <td>{{ piece.libelle }}</td>
+                <td>{{ piece.quantite }}</td>
+                <td class="flex gap-2">
+                    <button pButton label="Edit" class="p-button-warning" (click)="editPiece(piece)"></button>
+                    <button pButton label="Delete" class="p-button-danger" (click)="confirmDelete(piece)"></button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="4">No pieces found.</td>
+            </tr>
+        </ng-template>
+
+        <ng-template #loadingbody>
+            <tr>
+                <td colspan="4">Loading piece data. Please wait.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- 🔹 Pop-Up Dialog for Adding a Piece -->
+<p-dialog header="Add Piece" [(visible)]="pieceDialog" [modal]="true" [style]="{ width: '30vw' }">
+    <div class="p-6 space-y-4">
+        <div class="space-y-1">
+            <label class="block text-gray-700 font-medium">Piece Name</label>
+            <input type="text" pInputText [(ngModel)]="newPiece.libelle"
+                class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+
+            <label class="block text-gray-700 font-medium mt-2">Quantity</label>
+            <input type="number" pInputText [(ngModel)]="newPiece.quantite"
+                class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        </div>
+    </div>
+
+    <ng-template #footer>
+        <div class="flex justify-end space-x-4 p-4 bg-gray-100 rounded-b-lg">
+            <button pButton label="Cancel" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                (click)="pieceDialog = false"></button>
+            <button pButton label="Save" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                (click)="addPiece()"></button>
+        </div>
+    </ng-template>
+</p-dialog>

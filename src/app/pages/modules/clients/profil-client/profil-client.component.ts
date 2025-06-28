@@ -9,8 +9,10 @@ import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import { FormsModule } from '@angular/forms';
 
+
+
 @Component({
-  selector: 'profil-client',
+  selector: 'client-profil',
   templateUrl: './profil-client.component.html',
   standalone: true,
   imports: [CommonModule, RouterModule, TableModule, DialogModule, FormsModule],
@@ -43,7 +45,7 @@ export class ProfilClientComponent implements OnInit {
     }
   }
   goBack() {
-    this.router.navigate(['/clients']); // Navigates back to the main page
+    this.router.navigate(['/modules/clients']); // Navigates back to the main page
   }
 
   openEditDialog() {

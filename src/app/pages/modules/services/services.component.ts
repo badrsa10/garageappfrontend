@@ -21,10 +21,10 @@ import { RippleModule } from 'primeng/ripple';
 import { IconFieldModule } from 'primeng/iconfield';
 
 @Component({
-  selector: 'app-services',
+  selector: 'services',
   standalone: true,
+  providers:[MessageService],
   imports: [TableModule,
-    MessageService,
           MultiSelectModule,
           SelectModule,
           InputIconModule,
@@ -43,6 +43,7 @@ import { IconFieldModule } from 'primeng/iconfield';
           DialogModule,
           RouterModule],
   templateUrl: './services.component.html'
+  
 })
 export class ServicesComponent {
   services: Service[] = [];
@@ -60,7 +61,9 @@ export class ServicesComponent {
   // @ViewChild('dt') dt!: Table; // ✅ Ensure Table is correctly referenced
   @ViewChild('filter') filter!: ElementRef;
 
-  constructor(private serviceService: ServiceService, private messageService: MessageService, private router: Router) { }
+  constructor(private serviceService: ServiceService, 
+    private messageService: MessageService, 
+    private router: Router) { }
 
   ngOnInit(): void {
     this.fetchServices();
