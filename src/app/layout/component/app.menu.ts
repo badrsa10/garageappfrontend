@@ -28,7 +28,7 @@ export class AppMenu {
                 label: 'Modules',
                 items: [
                     { label: 'Clients', icon: 'pi pi-fw pi-user', routerLink: ['/modules/clients'] },
-                    { label: 'Vehicules', icon: 'pi pi-fw pi-car', routerLink: ['/'] },
+                    { label: 'Vehicules', icon: 'pi pi-fw pi-car', routerLink: ['/modules/vehicules'] },
                     { label: 'Commandes', icon: 'pi pi-fw pi-cart-arrow-down', routerLink: ['/'] },
                     { label: 'Fournisseurs', icon: 'pi pi-fw pi-shop', routerLink: ['/'] },
                     { label: 'Pieces', icon: 'pi pi-fw pi-cog', routerLink: ['/modules/pieces'] },
