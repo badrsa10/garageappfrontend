@@ -1,0 +1,84 @@
+<div class="p-6 bg-gray-50">
+    <!-- 🔹 Control Panel -->
+    <div class="flex justify-between items-center p-4 rounded-lg mb-6">
+        <button pButton label="Back" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-md transition" (click)="goBack()">Précédent</button>
+
+        <div class="flex gap-4">
+            <button pButton label="Modify Vehicle Info" class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 shadow-md transition" (click)="openEditDialog()">Modifier Info</button>
+
+            <button pButton label="Delete Vehicle" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 shadow-md transition" (click)="deleteVehicule()">Supprimer Véhicule</button>
+        </div>
+    </div>
+
+    <!-- 🔹 Vehicle Information -->
+    <div *ngIf="vehicule && client" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Vehicle Info Card -->
+        <div class="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Vehicle Profile</h2>
+            <p class="text-gray-700"><strong>Marque:</strong> {{ vehicule.marque }}</p>
+            <p class="text-gray-700"><strong>Modèle:</strong> {{ vehicule.modele }}</p>
+            <p class="text-gray-700"><strong>Année:</strong> {{ vehicule.annee }}</p>
+            <p class="text-gray-700"><strong>Matricule:</strong> {{ vehicule.matricule }}</p>
+            <p class="text-gray-700" *ngIf="vehicule.numeroSerie"><strong>Numéro de série:</strong> {{ vehicule.numeroSerie }}</p>
+        </div>
+
+        <!-- Client/Owner Info Card -->
+        <div class="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Owner Profile</h2>
+            <p class="text-gray-700"><strong>Nom:</strong> {{ client.nom }}</p>
+            <p class="text-gray-700"><strong>Prénom:</strong> {{ client.prenom }}</p>
+            <p class="text-gray-700"><strong>Téléphone:</strong> {{ client.tel }}</p>
+            <p class="text-gray-700"><strong>Email:</strong> {{ client.email }}</p>
+        </div>
+    </div>
+
+    <!-- (Optional) Related Data table — e.g., maintenance history -->
+    <div class="mt-6" *ngIf="historiques.length > 0">
+        <h3 class="text-xl font-semibold mb-4">Maintenance History</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse border border-gray-300 text-gray-700">
+                <thead class="bg-gray-100 text-gray-800">
+                    <tr>
+                        <th class="border p-3">Date</th>
+                        <th class="border p-3">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let h of historiques" class="hover:bg-gray-100 transition">
+                        <td class="border p-3">{{ h.date_historique | date: 'longDate' }}</td>
+                        <td class="border p-3">{{ h.libelle_pieceouservice }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Dialog: Edit Vehicle -->
+    <p-dialog header="Edit Vehicle Info" [(visible)]="editDialog" [modal]="true" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '30vw' }">
+        <div class="p-6 space-y-4">
+            <div class="space-y-1">
+                <label class="block  font-medium">Marque</label>
+                <input type="text" pInputText [(ngModel)]="editedVehicule.marque" class="w-full p-2 border rounded-lg" />
+            </div>
+            <div class="space-y-1">
+                <label class="block text-gray-700 font-medium">Modèle</label>
+                <input type="text" pInputText [(ngModel)]="editedVehicule.modele" class="w-full p-2 border rounded-lg" />
+            </div>
+            <div class="space-y-1">
+                <label class="block text-gray-700 font-medium">Année</label>
+                <input type="number" pInputText [(ngModel)]="editedVehicule.annee" class="w-full p-2 border rounded-lg" />
+            </div>
+            <div class="space-y-1">
+                <label class="block text-gray-700 font-medium">Matricule</label>
+                <input type="text" pInputText [(ngModel)]="editedVehicule.matricule" class="w-full p-2 border rounded-lg" />
+            </div>
+        </div>
+
+        <ng-template #footer>
+            <div class="flex justify-end space-x-4 p-4 bg-gray-100 rounded-b-lg">
+                <button pButton label="Cancel" class="bg-gray-500 text-white px-4 py-2 rounded-lg" (click)="editDialog = false">Fermer</button>
+                <button pButton label="Save Changes" class="bg-blue-500 text-white px-4 py-2 rounded-lg" (click)="saveVehiculeChanges()">Modifier</button>
+            </div>
+        </ng-template>
+    </p-dialog>
+</div>

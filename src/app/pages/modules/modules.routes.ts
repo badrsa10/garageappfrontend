@@ -4,12 +4,14 @@ import { ProfilClientComponent } from './clients/profil-client/profil-client.com
 import { ServicesComponent } from './services/services.component';
 import { PiecesComponent } from './pieces/pieces.component';
 import { VehiculesComponent } from './vehicules/vehicules.component';
+import { ProfilVehiculeComponent } from './vehicules/profil-vehicule/profil-vehicule.component';
 
 
 export default [
     { path: 'clients', data: { breadcrumb: 'Clients' }, component: ClientsComponent },
     { path: 'client-profile/:id', data: { breadcrumb: 'Profil' }, component: ProfilClientComponent },
-    { path: 'vehicules', data: { breadcrumb: 'Pieces' }, component: VehiculesComponent },
+    { path: 'vehicules', data: { breadcrumb: 'Vehicules' }, component: VehiculesComponent },
+    { path: 'vehicule-profile/:id', data: { breadcrumb: 'Profil' }, component: ProfilVehiculeComponent },
     { path: 'pieces', data: { breadcrumb: 'Pieces' }, component: PiecesComponent },
     { path: 'services', data: { breadcrumb: 'Services' }, component: ServicesComponent },
     { path: '**', redirectTo: '/notfound' }
