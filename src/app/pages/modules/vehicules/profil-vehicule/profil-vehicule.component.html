@@ -1,12 +1,12 @@
 <div class="p-6 bg-gray-50">
     <!-- 🔹 Control Panel -->
     <div class="flex justify-between items-center p-4 rounded-lg mb-6">
-        <button pButton label="Back" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-md transition" (click)="goBack()">Précédent</button>
+        <button pButton class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-md transition" (click)="goBack()"> < Précédent</button>
 
         <div class="flex gap-4">
-            <button pButton label="Modify Vehicle Info" class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 shadow-md transition" (click)="openEditDialog()">Modifier Info</button>
+            <button pButton class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 shadow-md transition" (click)="openEditDialog()">Modifier Info</button>
 
-            <button pButton label="Delete Vehicle" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 shadow-md transition" (click)="deleteVehicule()">Supprimer Véhicule</button>
+            <button pButton class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 shadow-md transition" (click)="deleteVehicule()">Supprimer Véhicule</button>
         </div>
     </div>
 
@@ -36,20 +36,42 @@
     <div class="mt-6" *ngIf="historiques.length > 0">
         <h3 class="text-xl font-semibold mb-4">Maintenance History</h3>
         <div class="overflow-x-auto">
-            <table class="w-full border-collapse border border-gray-300 text-gray-700">
-                <thead class="bg-gray-100 text-gray-800">
+            <p-table #dt [value]="historiques" [paginator]="true" [rows]="10" sortField="date_historique" 
+                [sortOrder]="-1" [globalFilterFields]="['date_historique', 'libelle_pieceouservice', 'remarque']">
+                <ng-template pTemplate="caption" #caption>
+                    <div class="flex justify-between items-center flex-column sm:flex-row">
+                        <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt)">Clear</button>
+                        <p-iconfield iconPosition="left" class="ml-auto px-auto">
+                            <p-inputicon>
+                                <i class="pi pi-search"></i>
+                            </p-inputicon>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search Historique" />
+                        </p-iconfield>
+                    </div>
+                </ng-template>
+
+                <ng-template pTemplate="header">
                     <tr>
-                        <th class="border p-3">Date</th>
-                        <th class="border p-3">Description</th>
+                        <th pSortableColumn="date_historique">
+                            Date
+                            <p-sortIcon field="date_historique"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="libelle_pieceouservice">
+                            Pièce / Service
+                            <p-sortIcon field="libelle_pieceouservice"></p-sortIcon>
+                        </th>
+                        <th>Remarque</th>
                     </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let h of historiques" class="hover:bg-gray-100 transition">
-                        <td class="border p-3">{{ h.date_historique | date: 'longDate' }}</td>
-                        <td class="border p-3">{{ h.libelle_pieceouservice }}</td>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-h>
+                    <tr>
+                        <td>{{ h.date_historique | date: 'shortDate' }}</td>
+                        <td>{{ h.libelle_pieceouservice }}</td>
+                        <td>{{ h.remarque }}</td>
                     </tr>
-                </tbody>
-            </table>
+                </ng-template>
+            </p-table>
         </div>
     </div>
 
@@ -57,7 +79,7 @@
     <p-dialog header="Edit Vehicle Info" [(visible)]="editDialog" [modal]="true" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '30vw' }">
         <div class="p-6 space-y-4">
             <div class="space-y-1">
-                <label class="block  font-medium">Marque</label>
+                <label class="block font-medium">Marque</label>
                 <input type="text" pInputText [(ngModel)]="editedVehicule.marque" class="w-full p-2 border rounded-lg" />
             </div>
             <div class="space-y-1">

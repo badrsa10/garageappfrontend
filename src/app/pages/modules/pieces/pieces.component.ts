@@ -60,6 +60,8 @@ export class PiecesComponent {
         quantite: 0
     };
 
+    editing: { id: string; field: string } | null = null;
+
     @ViewChild('filter') filter!: ElementRef;
 
     constructor(
@@ -157,5 +159,21 @@ export class PiecesComponent {
                 }
             });
         }
+    }
+
+    
+
+    startEdit(piece: Piece, field: string): void {
+        this.editing = { id: piece.id_piece, field };
+    }
+
+    isEditing(piece: Piece, field: string): boolean {
+        return this.editing?.id === piece.id_piece && this.editing?.field === field;
+    }
+
+    saveEdit(piece: Piece): void {
+        console.log(`Quantité mise à jour pour ${piece.libelle}: ${piece.quantite}`);
+        // 🔹 Call your API or service here for persistence
+        this.editing = null;
     }
 }

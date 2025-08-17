@@ -1,20 +1,52 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import { switchMap, filter, map, of, tap } from 'rxjs';
 
 import { Vehicule, VehiculeService } from '../../../service/vehicules.service';
 import { VehiculeHistorique, VehiculeHistoriqueService } from '../../../service/vehiculehistorique.service';
 import { Client, ClientService } from '../../../service/clients.service';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { DropdownModule } from 'primeng/dropdown';
+import { RippleModule } from 'primeng/ripple';
+import { RatingModule } from 'primeng/rating';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { SliderModule } from 'primeng/slider';
+import { InputTextModule } from 'primeng/inputtext';
+import { TagModule } from 'primeng/tag';
+import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
 
 @Component({
     selector: 'vehicule-profil',
     templateUrl: './profil-vehicule.component.html',
     standalone: true,
-    imports: [CommonModule, RouterModule, TableModule, DialogModule, FormsModule]
+    imports: [TableModule,
+            MultiSelectModule,
+            SelectModule,
+            InputIconModule,
+            TagModule,
+            InputTextModule,
+            SliderModule,
+            ProgressBarModule,
+            ToggleButtonModule,
+            ToastModule,
+            CommonModule,
+            FormsModule,
+            ButtonModule,
+            RatingModule,
+            RippleModule,
+            IconFieldModule,
+            DialogModule,
+            DropdownModule,
+            RouterModule]
 })
 export class ProfilVehiculeComponent implements OnInit {
     editDialog: boolean = false;
@@ -31,6 +63,8 @@ export class ProfilVehiculeComponent implements OnInit {
         numeroSerie: '',
         clientId: ''
     };
+
+    @ViewChild('filter') filter!: ElementRef;
 
     historiques: VehiculeHistorique[] = []; // fetched history
 
@@ -96,5 +130,14 @@ export class ProfilVehiculeComponent implements OnInit {
                 this.router.navigate(['/modules/vehicules']);
             });
         }
+    }
+
+    onGlobalFilter(table: Table, event: Event) {
+        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    }
+
+    clear(table: Table) {
+        table.clear();
+        this.filter.nativeElement.value = '';
     }
 }
