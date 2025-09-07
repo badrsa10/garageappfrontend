@@ -6,7 +6,7 @@
     </div>
 
     <!-- 🔹 Pieces Table -->
-    <p-table #dt [value]="pieces" dataKey="id_piece" [rows]="10" [loading]="loading" [rowHover]="true" [showGridlines]="true" [paginator]="true" [globalFilterFields]="['libelle']" responsiveLayout="scroll">
+    <p-table #dt [value]="pieces" dataKey="id_piece" [value]="pieces" [paginator]="true" [rows]="pageSize" [totalRecords]="totalPieces" [lazy]="true" (onLazyLoad)="onPageChange($event)" [loading]="loading">
         <ng-template #caption>
             <div class="flex justify-between items-center flex-column sm:flex-row">
                 <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt)"></button>
@@ -14,7 +14,7 @@
                     <p-inputicon>
                         <i class="pi pi-search"></i>
                     </p-inputicon>
-                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search pieces" />
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Search pieces" />
                 </p-iconfield>
             </div>
         </ng-template>

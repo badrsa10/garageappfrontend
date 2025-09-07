@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { Router, RouterModule } from '@angular/router';
 import { Table, TableModule } from 'primeng/table';
-import { Dialog, DialogModule } from 'primeng/dialog';
+import { DialogModule } from 'primeng/dialog';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { InputIconModule } from 'primeng/inputicon';
@@ -19,6 +19,7 @@ import { ButtonModule } from 'primeng/button';
 import { RatingModule } from 'primeng/rating';
 import { RippleModule } from 'primeng/ripple';
 import { IconFieldModule } from 'primeng/iconfield';
+import { finalize } from 'rxjs/operators';
 
 @Component({
     selector: 'pieces',
@@ -48,21 +49,24 @@ import { IconFieldModule } from 'primeng/iconfield';
 })
 export class PiecesComponent {
     pieces: Piece[] = [];
-    loading: boolean = true;
-    pieceDialog: boolean = false;
-    editDialog: boolean = false;
-    deleteDialog: boolean = false;
-    selectedPiece: Piece | null = null;
+    totalPieces: number = 0;
+    totalPages: number = 0;
+    currentPage: number = 1;
+    pageSize: number = 10;
+    loading = true;
 
-    newPiece: Piece = {
-        id_piece: '',
-        libelle: '',
-        quantite: 0
-    };
+    pieceDialog = false;
+    editDialog = false;
+    deleteDialog = false;
+
+    selectedPiece: Piece | null = null;
+    newPiece: Piece = { id_piece: '', libelle: '', quantite: 0 };
 
     editing: { id: string; field: string } | null = null;
 
     @ViewChild('filter') filter!: ElementRef;
+    totalRecords: number | undefined;
+    globalFilter = '';
 
     constructor(
         private pieceService: PieceService,
@@ -74,106 +78,172 @@ export class PiecesComponent {
         this.fetchPieces();
     }
 
-    fetchPieces() {
-        this.pieceService.getPieces().subscribe({
-            next: (pieces) => {
-                this.pieces = pieces;
+    fetchPieces(page: number = this.currentPage) {
+        this.loading = true;
+        this.pieceService.getPieces(page, this.pageSize, this.globalFilter).subscribe({
+            next: (res) => {
+                this.pieces = res.data;
+                this.totalPieces = res.meta.totalPieces;
+                this.currentPage = res.meta.currentPage;
+                this.pageSize = res.meta.pageSize;
                 this.loading = false;
             },
-            error: (err) => {
-                console.error('Error fetching pieces:', err);
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch pieces' });
+            error: () => {
+                this.loading = false;
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Failed to load pieces'
+                });
             }
         });
     }
 
-    /** ✅ Filter pieces globally */
-    onGlobalFilter(table: Table, event: Event) {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
-    }
-    /** ✅ Clear all filters */
-    clear(table: Table) {
-        table.clear();
-        this.filter.nativeElement.value = '';
+    onPageChange(event: any) {
+        this.pageSize = event.rows;
+        const page = event.first / event.rows + 1;
+        this.fetchPieces(page);
     }
 
+    onGlobalFilter(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.globalFilter = input.value;
+        this.fetchPieces(1); // reset to first page when searching
+    }
+
+    /** Clear all filters */
+    clear(dt: Table) {
+        dt.filterGlobal('', 'contains');
+        this.globalFilter = '';
+    }
+
+    /** Open dialog to add a new piece */
     openPieceDialog() {
         this.newPiece = { id_piece: '', libelle: '', quantite: 0 };
         this.pieceDialog = true;
     }
 
+    /** Add a new piece via API */
     addPiece() {
-        if (this.newPiece.libelle.trim()) {
-            this.newPiece.id_piece = (this.pieces.length + 1).toString();
-            this.pieceService.createPiece(this.newPiece).subscribe({
-                next: () => {
-                    this.fetchPieces();
-                    this.pieceDialog = false;
-                    this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Piece added' });
-                },
-                error: (err) => {
-                    console.error('Error adding piece:', err);
-                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add piece' });
-                }
+        if (!this.newPiece.libelle.trim()) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Attention',
+                detail: 'Le libellé est requis'
             });
+            return;
         }
+
+        this.pieceService.createPiece(this.newPiece).subscribe({
+            next: () => {
+                this.fetchPieces();
+                this.pieceDialog = false;
+                this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Pièce ajoutée' });
+            },
+            error: (err) => {
+                console.error('Error adding piece:', err);
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec de l’ajout' });
+            }
+        });
     }
 
+    /** Open dialog to edit selected piece */
     editPiece(piece: Piece) {
         this.selectedPiece = { ...piece };
         this.editDialog = true;
     }
 
+    /** Save changes from edit dialog */
     savePieceChanges() {
-        if (this.selectedPiece) {
-            this.pieceService.updatePiece(this.selectedPiece.id_piece, this.selectedPiece).subscribe({
+        if (!this.selectedPiece) return;
+
+        this.pieceService
+            .updatePiece(this.selectedPiece.id_piece, {
+                libelle: this.selectedPiece.libelle,
+                quantite: this.selectedPiece.quantite
+            })
+            .subscribe({
                 next: () => {
                     this.fetchPieces();
                     this.editDialog = false;
-                    this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Piece updated' });
+                    this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Pièce modifiée' });
                 },
                 error: (err) => {
                     console.error('Error updating piece:', err);
-                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update piece' });
+                    this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec de la modification' });
                 }
             });
-        }
     }
 
+    /** Confirm deletion dialog */
     confirmDelete(piece: Piece) {
         this.selectedPiece = piece;
         this.deleteDialog = true;
     }
 
+    /** Delete selected piece */
     deletePiece() {
-        if (this.selectedPiece) {
-            this.pieceService.deletePiece(this.selectedPiece.id_piece).subscribe({
-                next: () => {
+        if (!this.selectedPiece) return;
+
+        this.pieceService.deletePiece(this.selectedPiece.id_piece).subscribe({
+            next: (success) => {
+                if (success) {
                     this.fetchPieces();
-                    this.deleteDialog = false;
-                    this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Piece deleted' });
-                },
-                error: (err) => {
-                    console.error('Error deleting piece:', err);
-                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete piece' });
+                    this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Pièce supprimée' });
+                } else {
+                    this.messageService.add({ severity: 'warn', summary: 'Info', detail: 'Pièce introuvable' });
                 }
-            });
-        }
+                this.deleteDialog = false;
+            },
+            error: (err) => {
+                console.error('Error deleting piece:', err);
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec de la suppression' });
+            }
+        });
     }
 
-    
-
+    /** Inline cell editing start */
     startEdit(piece: Piece, field: string): void {
         this.editing = { id: piece.id_piece, field };
     }
 
+    /** Is the cell currently being edited? */
     isEditing(piece: Piece, field: string): boolean {
         return this.editing?.id === piece.id_piece && this.editing?.field === field;
     }
 
+    /** Save inline edit directly to backend */
     saveEdit(piece: Piece): void {
-        console.log(`Quantité mise à jour pour ${piece.libelle}: ${piece.quantite}`);
-        // 🔹 Call your API or service here for persistence
-        this.editing = null;
+        const originalValue = [...this.pieces]; // rollback state if fails
+
+        this.pieceService.updatePiece(piece.id_piece, { quantite: piece.quantite }).subscribe({
+            next: (updated) => {
+                if (updated) {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Succès',
+                        detail: `Quantité mise à jour: ${piece.quantite}`
+                    });
+                } else {
+                    this.pieces = originalValue;
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Non modifié',
+                        detail: 'Impossible de mettre à jour cette pièce'
+                    });
+                }
+                this.editing = null;
+            },
+            error: (err) => {
+                console.error('Error inline updating piece:', err);
+                this.pieces = originalValue; // rollback
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Erreur',
+                    detail: 'Échec de la mise à jour'
+                });
+                this.editing = null;
+            }
+        });
     }
 }
