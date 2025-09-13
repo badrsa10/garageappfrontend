@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 export interface PaginationMeta {
+    totalServices: number;
     pageSize: number;
     totalPieces: number;
     currentPage: number;
@@ -52,10 +53,9 @@ export class PieceService {
     }
 
     /** Create a new piece */
-    createPiece(piece: Piece): Observable<Piece | null> {
-        return this.http.post<{ data: Piece }>(this.API_URL, piece).pipe(
-            map((res) => res?.data || null),
-            catchError(this.handleError<Piece | null>('createPiece', null))
+    createPiece(piece: Piece): Observable<Piece> {
+        return this.http.post<Piece>(this.API_URL, piece).pipe(
+            map((res) => res) // no catchError here
         );
     }
 

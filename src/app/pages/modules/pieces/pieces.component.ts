@@ -67,6 +67,7 @@ export class PiecesComponent {
     @ViewChild('filter') filter!: ElementRef;
     totalRecords: number | undefined;
     globalFilter = '';
+    selectedPieces: Piece[] = [];
 
     constructor(
         private pieceService: PieceService,
@@ -141,8 +142,16 @@ export class PiecesComponent {
                 this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Pièce ajoutée' });
             },
             error: (err) => {
-                console.error('Error adding piece:', err);
-                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec de l’ajout' });
+                if (err.status === 409) {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Duplicate',
+                        detail: 'A piece with this name already exists'
+                    });
+                } else {
+                    console.error('Error adding piece:', err);
+                    this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec de l’ajout' });
+                }
             }
         });
     }
@@ -245,5 +254,51 @@ export class PiecesComponent {
                 this.editing = null;
             }
         });
+    }
+
+    /** Bulk delete selected pieces */
+    deleteSelected() {
+        if (!this.selectedPieces.length) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'No selection',
+                detail: 'Please select at least one piece to delete'
+            });
+            return;
+        }
+
+        const idsToDelete = this.selectedPieces.map((p) => p.id_piece);
+        const originalPieces = [...this.pieces];
+
+        // Optimistic UI update
+        this.pieces = this.pieces.filter((p) => !idsToDelete.includes(p.id_piece));
+        this.totalPieces -= idsToDelete.length;
+
+        // Call backend for each delete (or batch if your API supports it)
+        idsToDelete.forEach((id) => {
+            this.pieceService.deletePiece(id).subscribe({
+                next: (success) => {
+                    if (!success) {
+                        this.pieces = originalPieces; // rollback if any fail
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Delete failed',
+                            detail: `Could not delete piece ${id}`
+                        });
+                    }
+                },
+                error: () => {
+                    this.pieces = originalPieces; // rollback
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Server error while deleting'
+                    });
+                }
+            });
+        });
+
+        // Clear selection
+        this.selectedPieces = [];
     }
 }

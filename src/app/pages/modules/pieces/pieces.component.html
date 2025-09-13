@@ -6,10 +6,24 @@
     </div>
 
     <!-- 🔹 Pieces Table -->
-    <p-table #dt [value]="pieces" dataKey="id_piece" [value]="pieces" [paginator]="true" [rows]="pageSize" [totalRecords]="totalPieces" [lazy]="true" (onLazyLoad)="onPageChange($event)" [loading]="loading">
+    <p-table
+        #dt
+        [value]="pieces"
+        selectionMode="multiple"
+        [(selection)]="selectedPieces"
+        dataKey="id_piece"
+        [value]="pieces"
+        [paginator]="true"
+        [rows]="pageSize"
+        [totalRecords]="totalPieces"
+        [lazy]="true"
+        (onLazyLoad)="onPageChange($event)"
+        [loading]="loading"
+    >
         <ng-template #caption>
             <div class="flex justify-between items-center flex-column sm:flex-row">
                 <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt)"></button>
+                <button pButton label="Delete" class="p-button-outlined p-button-danger mb-2 mx-4" (click)="deleteSelected()"></button>
                 <p-iconfield iconPosition="left" class="ml-auto">
                     <p-inputicon>
                         <i class="pi pi-search"></i>
@@ -21,6 +35,9 @@
 
         <ng-template #header>
             <tr>
+                <th style="width: 3rem">
+                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                </th>
                 <th style="min-width: 12rem">Piece ID</th>
                 <th style="min-width: 15rem">Libelle</th>
                 <th style="min-width: 10rem">Quantity</th>
@@ -28,7 +45,10 @@
         </ng-template>
 
         <ng-template #body let-piece>
-            <tr class="cursor-pointer hover:bg-gray-200">
+            <tr class="cursor-pointer hover:bg-gray-200" [pSelectableRow]="piece">
+                <td>
+                    <p-tableCheckbox [value]="piece"></p-tableCheckbox>
+                </td>
                 <td>{{ piece.id_piece }}</td>
                 <td>{{ piece.libelle }}</td>
 
@@ -71,9 +91,10 @@
     </div>
 
     <ng-template #footer>
-        <div class="flex justify-end space-x-4 p-4 bg-gray-100 rounded-b-lg">
+        <div class="flex justify-end space-x-4 p-4 rounded-b-lg">
             <button pButton label="Cancel" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600" (click)="pieceDialog = false"></button>
             <button pButton label="Save" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600" (click)="addPiece()"></button>
         </div>
     </ng-template>
 </p-dialog>
+<p-toast></p-toast>

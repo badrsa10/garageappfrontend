@@ -1,168 +1,167 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Service, ServiceService } from '../../service/services.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { Router, RouterModule } from '@angular/router';
 import { Table, TableModule } from 'primeng/table';
-import { Dialog, DialogModule } from 'primeng/dialog';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { SelectModule } from 'primeng/select';
-import { InputIconModule } from 'primeng/inputicon';
-import { TagModule } from 'primeng/tag';
-import { InputTextModule } from 'primeng/inputtext';
-import { SliderModule } from 'primeng/slider';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { ToggleButtonModule } from 'primeng/togglebutton';
 import { ToastModule } from 'primeng/toast';
 import { ButtonModule } from 'primeng/button';
-import { RatingModule } from 'primeng/rating';
-import { RippleModule } from 'primeng/ripple';
+import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+
+import { Service, ServiceService } from '../../service/services.service';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
-  selector: 'services',
-  standalone: true,
-  providers:[MessageService],
-  imports: [TableModule,
-          MultiSelectModule,
-          SelectModule,
-          InputIconModule,
-          TagModule,
-          InputTextModule,
-          SliderModule,
-          ProgressBarModule,
-          ToggleButtonModule,
-          ToastModule,
-          CommonModule,
-          FormsModule,
-          ButtonModule,
-          RatingModule,
-          RippleModule,
-          IconFieldModule,
-          DialogModule,
-          RouterModule],
-  templateUrl: './services.component.html'
-  
+    selector: 'services',
+    standalone: true,
+    providers: [MessageService],
+    imports: [CommonModule, FormsModule, RouterModule, TableModule, ToastModule, ButtonModule, InputTextModule, IconFieldModule, InputIconModule, DialogModule],
+    templateUrl: './services.component.html'
 })
 export class ServicesComponent {
-  services: Service[] = [];
-  loading: boolean = true;
-  serviceDialog: boolean = false;
-  editDialog: boolean = false;
-  deleteDialog: boolean = false;
-  selectedService: Service | null = null;
+    services: Service[] = [];
+    selectedServices: Service[] = [];
+    editingService: Service | null = null;
+    serviceDialog = false;
 
-  // ✅ Define newService with default values
-  newService: Service = {
-    id_service: '',
-    libelle: ''
-  };
-  // @ViewChild('dt') dt!: Table; // ✅ Ensure Table is correctly referenced
-  @ViewChild('filter') filter!: ElementRef;
+    loading = false;
+    pageSize = 10;
+    currentPage = 1;
+    totalServices = 0;
+    globalFilter = '';
 
-  constructor(private serviceService: ServiceService, 
-    private messageService: MessageService, 
-    private router: Router) { }
+    newService: Partial<Service> = { libelle: '' };
 
-  ngOnInit(): void {
-    this.fetchServices();
-  }
+    constructor(
+        private serviceService: ServiceService,
+        private messageService: MessageService
+    ) {}
 
-  /** ✅ Fetch all services */
-  fetchServices() {
-    this.serviceService.getServices().subscribe({
-      next: (services) => {
-        this.services = services;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error fetching services:', err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch services' });
-      }
-    });
-  }
-
-  /** ✅ Filter services globally */
-  onGlobalFilter(table: Table, event: Event) {
-    table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
-  }
-
-  /** ✅ Clear all filters */
-  clear(table: Table) {
-    table.clear();
-    this.filter.nativeElement.value = '';
-  }
-
-  /** ✅ Open add service dialog */
-  openServiceDialog() {
-    this.newService = { id_service: '', libelle: '' };
-    this.serviceDialog = true;
-  }
-
-  /** ✅ Add a new service */
-  addService() {
-    if (this.newService.libelle.trim()) {
-      this.newService.id_service = (this.services.length + 1).toString();
-      this.serviceService.createService(this.newService).subscribe({
-        next: () => {
-          this.fetchServices();
-          this.serviceDialog = false;
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Service added' });
-        },
-        error: (err) => {
-          console.error('Error adding service:', err);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add service' });
-        }
-      });
+    ngOnInit() {
+        this.fetchServices();
     }
-  }
 
-  /** ✅ Open edit service dialog */
-  editService(service: Service) {
-    this.selectedService = { ...service };
-    this.editDialog = true;
-  }
-
-  /** ✅ Save service updates */
-  saveServiceChanges() {
-    if (this.selectedService) {
-      this.serviceService.updateService(this.selectedService.id_service, this.selectedService).subscribe({
-        next: () => {
-          this.fetchServices();
-          this.editDialog = false;
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Service updated' });
-        },
-        error: (err) => {
-          console.error('Error updating service:', err);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update service' });
-        }
-      });
+    fetchServices(page: number = this.currentPage) {
+        this.loading = true;
+        this.serviceService.getServices(page, this.pageSize, this.globalFilter).subscribe({
+            next: (res) => {
+                this.services = res.data;
+                this.totalServices = res.meta.totalServices; // ✅ now matches interface
+                this.currentPage = res.meta.currentPage;
+                this.pageSize = res.meta.pageSize;
+                this.loading = false;
+            },
+            error: () => {
+                this.loading = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch services' });
+            }
+        });
     }
-  }
 
-  /** ✅ Open delete confirmation */
-  confirmDelete(service: Service) {
-    this.selectedService = service;
-    this.deleteDialog = true;
-  }
-
-  /** ✅ Delete service */
-  deleteService() {
-    if (this.selectedService) {
-      this.serviceService.deleteService(this.selectedService.id_service).subscribe({
-        next: () => {
-          this.fetchServices();
-          this.deleteDialog = false;
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Service deleted' });
-        },
-        error: (err) => {
-          console.error('Error deleting service:', err);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete service' });
-        }
-      });
+    onPageChange(event: any) {
+        this.pageSize = event.rows;
+        const page = event.first / event.rows + 1;
+        this.fetchServices(page);
     }
-  }
 
+    onGlobalFilter(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.globalFilter = input.value;
+        this.fetchServices(1);
+    }
 
+    clear(table: Table) {
+        table.clear();
+        this.globalFilter = '';
+        this.fetchServices(1);
+    }
+
+    startEdit(service: Service) {
+        this.editingService = { ...service };
+    }
+
+    saveEdit() {
+        if (!this.editingService) return;
+
+        const { id_service, libelle } = this.editingService;
+        const original = this.services.find((s) => s.id_service === id_service);
+
+        if (original && original.libelle !== libelle.trim()) {
+            this.serviceService.updateService(id_service, { libelle: libelle.trim() }).subscribe({
+                next: (updated) => {
+                    Object.assign(original, updated);
+                    this.messageService.add({ severity: 'success', summary: 'Updated', detail: `Service updated to "${updated.libelle}"` });
+                },
+                error: (err) => {
+                    if (err.status === 409) {
+                        this.messageService.add({ severity: 'warn', summary: 'Duplicate', detail: 'A service with this name already exists' });
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update service' });
+                    }
+                }
+            });
+        }
+        this.editingService = null;
+    }
+
+    openServiceDialog() {
+        this.newService = { libelle: '' };
+        this.serviceDialog = true;
+    }
+
+    addService() {
+        if (!this.newService.libelle?.trim()) {
+            this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Service name is required' });
+            return;
+        }
+
+        this.serviceService.createService({ libelle: this.newService.libelle.trim() }).subscribe({
+            next: (created) => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Created',
+                    detail: `Service "${created.libelle}" added`
+                });
+                this.serviceDialog = false;
+                this.fetchServices(1);
+            },
+            error: (err) => {
+                if (err.status === 409) {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Duplicate',
+                        detail: 'A service with this name already exists'
+                    });
+                } else {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to create service' });
+                }
+            }
+        });
+    }
+
+    deleteSelected() {
+        if (!this.selectedServices.length) return;
+
+        const ids = this.selectedServices.map((s) => s.id_service);
+        let deletedCount = 0;
+
+        ids.forEach((id) => {
+            this.serviceService.deleteService(id).subscribe({
+                next: () => {
+                    deletedCount++;
+                    if (deletedCount === ids.length) {
+                        this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Selected services deleted' });
+                        this.fetchServices(this.currentPage);
+                    }
+                },
+                error: () => {
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete some services' });
+                }
+            });
+        });
+
+        this.selectedServices = [];
+    }
 }
