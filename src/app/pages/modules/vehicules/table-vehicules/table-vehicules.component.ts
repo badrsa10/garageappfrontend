@@ -1,53 +1,23 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { Table, TableModule } from 'primeng/table';
-import { InputTextModule } from 'primeng/inputtext';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { Table, TableModule } from 'primeng/table';
+import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { Observable } from 'rxjs';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { SelectModule } from 'primeng/select';
-import { InputIconModule } from 'primeng/inputicon';
-import { TagModule } from 'primeng/tag';
-import { SliderModule } from 'primeng/slider';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { ToggleButtonModule } from 'primeng/togglebutton';
-import { RatingModule } from 'primeng/rating';
-import { RippleModule } from 'primeng/ripple';
+import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
-import { DialogModule } from 'primeng/dialog';
-import { RouterModule, Router } from '@angular/router';
+import { InputIconModule } from 'primeng/inputicon';
+import { MessageService } from 'primeng/api';
 
-import { Vehicule, VehiculeService } from '../../../service/vehicules.service';
 import { Client, ClientService } from '../../../service/clients.service';
+import { Vehicule, VehiculeService } from '../../../service/vehicules.service';
 import { DropdownModule } from 'primeng/dropdown';
 
 @Component({
     selector: 'table-vehicules',
     standalone: true,
-    imports: [
-        TableModule,
-        MultiSelectModule,
-        SelectModule,
-        InputIconModule,
-        TagModule,
-        InputTextModule,
-        SliderModule,
-        ProgressBarModule,
-        ToggleButtonModule,
-        ToastModule,
-        CommonModule,
-        FormsModule,
-        ButtonModule,
-        RatingModule,
-        RippleModule,
-        IconFieldModule,
-        DialogModule,
-        DropdownModule,
-        RouterModule
-    ],
     templateUrl: './table-vehicules.component.html',
     styles: `
         .p-datatable-frozen-tbody {
@@ -57,67 +27,39 @@ import { DropdownModule } from 'primeng/dropdown';
             font-weight: bold;
         }
     `,
-    providers: [ConfirmationService, MessageService, VehiculeService, ClientService]
+    providers: [MessageService],
+    imports: [CommonModule, FormsModule, RouterModule, TableModule, DialogModule, ButtonModule, ToastModule, InputTextModule, IconFieldModule, InputIconModule, DropdownModule]
 })
 export class TableVehiculesComponent implements OnInit {
     vehicules: Vehicule[] = [];
     selectedVehicules: Vehicule[] = [];
-    loading: boolean = true;
-    displayDialog: boolean = false;
+    loading = false;
 
+    pageSize = 10;
+    currentPage = 1;
+    totalVehicules = 0;
+    globalFilter = '';
+
+    displayDialog = false;
+    newVehicule: Partial<Vehicule> = {};
     clients: { id_client: string, fullName: string }[] = [];
-
-    // ✅ Define newVehicule with default values
-    newVehicule: Vehicule = {
-        id_vehicule: '',
-        marque: '',
-        modele: '',
-        annee: new Date().getFullYear(),
-        kilometrage: 0,
-        matricule: '',
-        numeroSerie: '',
-        clientId: undefined
-    };
 
     @ViewChild('filter') filter!: ElementRef;
 
     constructor(
         private vehiculeService: VehiculeService,
-        private clientService: ClientService,
         private messageService: MessageService,
+        private clientService: ClientService,
         private router: Router
     ) {}
 
     ngOnInit() {
         this.fetchVehicules();
-        this.fetchClients();
     }
-
-    navigateToVehicule(vehiculeId: string) {
-        if (this.router) {
-            this.router.navigateByUrl(`/modules/vehicule-profile/${vehiculeId}`);
-        } else {
-            console.error('Router instance is undefined.');
-        }
-    }
-
-    fetchVehicules() {
-        this.vehiculeService.getVehicules().subscribe({
-            next: (vehicules) => {
-                this.vehicules = vehicules;
-                this.loading = false;
-            },
-            error: (err) => {
-                console.error('Error fetching vehicules:', err);
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch vehicules' });
-            }
-        });
-    }
-
     fetchClients() {
-        this.clientService.getClients().subscribe({
+        this.clientService.getClients(1, 100).subscribe({
             next: (clients) => {
-                this.clients = clients.map(c => ({
+                this.clients = clients.map((c) => ({
                     id_client: c.id_client,
                     fullName: `${c.nom} ${c.prenom}`
                 }));
@@ -128,70 +70,132 @@ export class TableVehiculesComponent implements OnInit {
         });
     }
 
+    fetchVehicules(page: number = this.currentPage) {
+        this.loading = true;
+        this.vehiculeService.getVehicules(page, this.pageSize, this.globalFilter).subscribe({
+            next: (res) => {
+                this.vehicules = res.data;
+                this.totalVehicules = res.meta.totalVehicules;
+                this.currentPage = res.meta.currentPage;
+                this.pageSize = res.meta.pageSize;
+                this.loading = false;
+            },
+            error: () => {
+                this.loading = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch vehicules' });
+            }
+        });
+    }
+
+    onPageChange(event: any) {
+        this.pageSize = event.rows;
+        const page = event.first / event.rows + 1;
+        this.fetchVehicules(page);
+    }
+
     onGlobalFilter(table: Table, event: Event) {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+        const input = event.target as HTMLInputElement;
+        this.globalFilter = input.value;
+        this.fetchVehicules(1);
     }
 
     clear(table: Table) {
         table.clear();
-        this.filter.nativeElement.value = '';
+        this.globalFilter = '';
+        if (this.filter) this.filter.nativeElement.value = '';
+        this.fetchVehicules(1);
     }
 
-    addVehicule(vehicule: Vehicule) {
-        if (!vehicule.id_vehicule) {
-            vehicule.id_vehicule = 'V' + (this.vehicules.length + 1).toString().padStart(3, '0');
+    openAddDialog() {
+        this.newVehicule = {};
+        this.displayDialog = true;
+    }
+
+    addVehicule() {
+        const { marque, modele, annee, kilometrage, matricule, numeroSerie, clientId } = this.newVehicule;
+        if (!marque || !modele || !annee || !kilometrage || !matricule || !numeroSerie || !clientId) {
+            this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'All fields are required' });
+            return;
         }
 
-        this.vehiculeService.addVehicule(vehicule).subscribe({
-            next: (newVehicule) => {
-                this.vehicules.push(newVehicule);
-                this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Vehicule added' });
+        this.vehiculeService.createVehicule({ marque, modele, annee, kilometrage, matricule, numeroSerie, clientId }).subscribe({
+            next: (created) => {
+                this.messageService.add({ severity: 'success', summary: 'Created', detail: `Vehicule "${created.matricule}" added` });
                 this.displayDialog = false;
-                this.newVehicule = {
-                    id_vehicule: '',
-                    marque: '',
-                    modele: '',
-                    annee: new Date().getFullYear(),
-                    kilometrage: 0,
-                    matricule: '',
-                    numeroSerie: '',
-                    clientId: undefined
-                };
+                this.fetchVehicules(1);
             },
-            error: (err) => {
-                console.error('Error adding vehicule:', err);
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add vehicule' });
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to create vehicule' });
             }
         });
     }
 
     updateVehicule(vehicule: Partial<Vehicule>) {
         if (!vehicule.id_vehicule) return;
+
         this.vehiculeService.updateVehicule(vehicule.id_vehicule, vehicule).subscribe({
-            next: (updatedVehicule) => {
-                const index = this.vehicules.findIndex(v => v.id_vehicule === vehicule.id_vehicule);
-                if (index !== -1 && updatedVehicule) {
-                    this.vehicules[index] = { ...this.vehicules[index], ...updatedVehicule };
+            next: (updated) => {
+                const index = this.vehicules.findIndex((v) => v.id_vehicule === vehicule.id_vehicule);
+                if (index !== -1) {
+                    this.vehicules[index] = { ...this.vehicules[index], ...updated };
                 }
-                this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Vehicule updated' });
+                this.messageService.add({ severity: 'success', summary: 'Updated', detail: 'Vehicule updated' });
             },
-            error: (err) => {
-                console.error('Error updating vehicule:', err);
+            error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update vehicule' });
             }
         });
     }
 
-    deleteVehicule(vehiculeId: string) {
-        this.vehiculeService.deleteVehicule(vehiculeId).subscribe({
-            next: () => {
-                this.vehicules = this.vehicules.filter(v => v.id_vehicule !== vehiculeId);
-                this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Vehicule deleted' });
+    deleteVehicule(id: string) {
+        this.vehiculeService.deleteVehicule(id).subscribe({
+            next: (success) => {
+                if (success) {
+                    this.vehicules = this.vehicules.filter((v) => v.id_vehicule !== id);
+                    this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Vehicule deleted' });
+                }
             },
-            error: (err) => {
-                console.error('Error deleting vehicule:', err);
+            error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete vehicule' });
             }
         });
+    }
+
+    deleteSelectedVehicules() {
+        if (!this.selectedVehicules.length) return;
+
+        const ids = this.selectedVehicules.map((v) => v.id_vehicule);
+        let deletedCount = 0;
+
+        ids.forEach((id) => {
+            this.vehiculeService.deleteVehicule(id).subscribe({
+                next: (success) => {
+                    if (success) {
+                        deletedCount++;
+                        if (deletedCount === ids.length) {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Deleted',
+                                detail: 'Selected vehicules have been deleted'
+                            });
+                            this.fetchVehicules(this.currentPage);
+                        }
+                    }
+                },
+                error: () => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to delete some vehicules'
+                    });
+                }
+            });
+        });
+
+        this.selectedVehicules = [];
+    }
+
+    navigateToVehicule(id: string) {
+        this.router.navigateByUrl(`/modules/vehicule-profile/${id}`);
     }
 }

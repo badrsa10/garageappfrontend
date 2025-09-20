@@ -1,53 +1,20 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { Table, TableModule } from 'primeng/table';
-import { InputTextModule } from 'primeng/inputtext';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { Table, TableModule } from 'primeng/table';
+import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { Client, ClientService } from '../../../service/clients.service';
-import { Observable } from 'rxjs';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { SelectModule } from 'primeng/select';
-import { InputIconModule } from 'primeng/inputicon';
-import { TagModule } from 'primeng/tag';
-import { SliderModule } from 'primeng/slider';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { ToggleButtonModule } from 'primeng/togglebutton';
-import { RatingModule } from 'primeng/rating';
-import { RippleModule } from 'primeng/ripple';
+import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
-import { ProfilClientComponent } from '../profil-client/profil-client.component';
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes, Router } from '@angular/router';
-import { DialogModule } from 'primeng/dialog';
+import { InputIconModule } from 'primeng/inputicon';
+import { MessageService } from 'primeng/api';
 
-
-
+import { Client, ClientService } from '../../../service/clients.service';
 
 @Component({
     selector: 'table-clients',
-    imports: [
-        TableModule,
-        MultiSelectModule,
-        SelectModule,
-        InputIconModule,
-        TagModule,
-        InputTextModule,
-        SliderModule,
-        ProgressBarModule,
-        ToggleButtonModule,
-        ToastModule,
-        CommonModule,
-        FormsModule,
-        ButtonModule,
-        RatingModule,
-        RippleModule,
-        IconFieldModule,
-        DialogModule,
-        RouterModule
-    ],
     standalone: true,
     templateUrl: './table-clients.component.html',
     styles: `
@@ -56,111 +23,162 @@ import { DialogModule } from 'primeng/dialog';
         }
         .p-datatable-scrollable .p-frozen-column {
             font-weight: bold;
-        }`,
-    providers: [ConfirmationService, MessageService, ClientService]
+        }
+    `,
+    providers: [MessageService],
+    imports: [CommonModule, FormsModule, RouterModule, TableModule, DialogModule, ButtonModule, ToastModule, InputTextModule, IconFieldModule, InputIconModule]
 })
 export class TableClientsComponent implements OnInit {
     clients: Client[] = [];
     selectedClients: Client[] = [];
-    loading: boolean = true;
-    displayDialog: boolean = false;
+    loading = false;
 
-    // ✅ Define newClient with default values
-    newClient: Client = {
-        nom: '',
-        prenom: '',
-        email: '',
-        tel: '',
-        type_personne: '',
-        id_client: ''
-    };
+    pageSize = 10;
+    currentPage = 1;
+    totalClients = 0;
+    globalFilter = '';
+
+    displayDialog = false;
+    newClient: Partial<Client> = {};
 
     @ViewChild('filter') filter!: ElementRef;
 
-    constructor(private clientService: ClientService, 
-        private messageService: MessageService, 
-        private router: Router) { }
+    constructor(
+        private clientService: ClientService,
+        private messageService: MessageService,
+        private router: Router
+    ) {}
 
     ngOnInit() {
         this.fetchClients();
     }
 
-    navigateToProfile(clientId: string) {
-        if (this.router) {
-            console.log('Router instance OK');
-            console.log('Client ID:', clientId); 
-            this.router.navigateByUrl(`/modules/client-profile/${clientId}`);
-
-        } else {
-            console.log('Router instance not OK');
-            console.error('Router instance is undefined.');
-        }
-    }
-
-    fetchClients() {
-        this.clientService.getClients().subscribe({
-            next: (clients) => {
-                this.clients = clients;
+    fetchClients(page: number = this.currentPage) {
+        this.loading = true;
+        this.clientService.getClients(page, this.pageSize, this.globalFilter).subscribe({
+            next: (res) => {
+                this.clients = res.data;
+                this.totalClients = res.meta.totalClients;
+                this.currentPage = res.meta.currentPage;
+                this.pageSize = res.meta.pageSize;
                 this.loading = false;
             },
-            error: (err) => {
-                console.error('Error fetching clients:', err);
+            error: () => {
+                this.loading = false;
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch clients' });
             }
         });
     }
 
+    onPageChange(event: any) {
+        this.pageSize = event.rows;
+        const page = event.first / event.rows + 1;
+        this.fetchClients(page);
+    }
+
     onGlobalFilter(table: Table, event: Event) {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+        const input = event.target as HTMLInputElement;
+        this.globalFilter = input.value;
+        this.fetchClients(1);
     }
 
     clear(table: Table) {
         table.clear();
-        this.filter.nativeElement.value = '';
+        this.globalFilter = '';
+        if (this.filter) this.filter.nativeElement.value = '';
+        this.fetchClients(1);
     }
 
-    addClient(client: Client) {
-        this.clientService.createClient(client).subscribe({
-            next: (newClient) => {
-                this.clients.push(newClient);
-                this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Client added' });
+    openAddDialog() {
+        this.newClient = {};
+        this.displayDialog = true;
+    }
+
+    addClient() {
+        const { nom, prenom, email, tel, type_personne } = this.newClient;
+        if (!nom || !prenom || !email || !tel || !type_personne) {
+            this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'All fields are required' });
+            return;
+        }
+
+        this.clientService.createClient({ nom, prenom, email, tel, type_personne }).subscribe({
+            next: (created) => {
+                this.messageService.add({ severity: 'success', summary: 'Created', detail: `Client "${created.nom}" added` });
+                this.displayDialog = false;
+                this.fetchClients(1);
             },
-            error: (err) => {
-                console.error('Error adding client:', err);
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add client' });
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to create client' });
             }
         });
     }
 
     updateClient(client: Partial<Client>) {
         if (!client.id_client) return;
+
         this.clientService.updateClient(client.id_client, client).subscribe({
-            next: (updatedClient) => {
-                const index = this.clients.findIndex(c => c.id_client === client.id_client);
+            next: (updated) => {
+                const index = this.clients.findIndex((c) => c.id_client === client.id_client);
                 if (index !== -1) {
-                    this.clients[index] = { ...this.clients[index], ...updatedClient };
+                    this.clients[index] = { ...this.clients[index], ...updated };
                 }
-                this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Client updated' });
+                this.messageService.add({ severity: 'success', summary: 'Updated', detail: 'Client updated' });
             },
-            error: (err) => {
-                console.error('Error updating client:', err);
+            error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update client' });
             }
         });
     }
 
-    deleteClient(clientId: string) {
-        this.clientService.deleteClient(clientId).subscribe({
-            next: () => {
-                this.clients = this.clients.filter(c => c.id_client !== clientId);
-                this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Client deleted' });
+    deleteClient(id: string) {
+        this.clientService.deleteClient(id).subscribe({
+            next: (success) => {
+                if (success) {
+                    this.clients = this.clients.filter((c) => c.id_client !== id);
+                    this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Client deleted' });
+                }
             },
-            error: (err) => {
-                console.error('Error deleting client:', err);
+            error: () => {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete client' });
             }
         });
     }
+
+    deleteSelectedClients() {
+        if (!this.selectedClients.length) return;
+
+        const ids = this.selectedClients.map((c) => c.id_client);
+        let deletedCount = 0;
+
+        ids.forEach((id) => {
+            this.clientService.deleteClient(id).subscribe({
+                next: (success) => {
+                    if (success) {
+                        deletedCount++;
+                        if (deletedCount === ids.length) {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Deleted',
+                                detail: 'Selected clients have been deleted'
+                            });
+                            this.fetchClients(this.currentPage);
+                        }
+                    }
+                },
+                error: () => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to delete some clients'
+                    });
+                }
+            });
+        });
+
+        this.selectedClients = [];
+    }
+
+    navigateToProfile(clientId: string) {
+        this.router.navigateByUrl(`/modules/client-profile/${clientId}`);
+    }
 }
-
-

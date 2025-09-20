@@ -1,16 +1,30 @@
 <div class="card">
     <div class="flex justify-between items-center mb-4">
         <div class="font-semibold text-xl">Client Management</div>
-        <!-- 🔹 Add Client Button -->
-        <button pButton label="Add Client" class="p-button-success" (click)="displayDialog = true"></button>
+        <div class="flex gap-2">
+            <button pButton label="Add Client" class="p-button-success" (click)="openAddDialog()"></button>
+        </div>
     </div>
-    <p-table #dt1 [value]="clients" dataKey="id_client" [rows]="10" [loading]="loading" [rowHover]="true"
-        [showGridlines]="true" [paginator]="true"
-        [globalFilterFields]="['nom', 'prenom', 'email', 'tel', 'type_personne']" responsiveLayout="scroll">
-        <ng-template #caption>
+
+    <p-table
+        #dt1
+        [value]="clients"
+        dataKey="id_client"
+        [(selection)]="selectedClients"
+        [rows]="pageSize"
+        [loading]="loading"
+        [rowHover]="true"
+        [showGridlines]="true"
+        [paginator]="true"
+        [totalRecords]="totalClients"
+        [lazy]="true"
+        (onLazyLoad)="onPageChange($event)"
+        responsiveLayout="scroll"
+    >
+        <ng-template pTemplate="caption">
             <div class="flex justify-between items-center flex-column sm:flex-row">
-                <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash"
-                    (click)="clear(dt1)"></button>
+                <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt1)"></button>
+                <button pButton label="Delete" class="p-button-danger p-button-outlined mb-2 mx-4" (click)="deleteSelectedClients()" [disabled]="!selectedClients.length"></button>
                 <p-iconfield iconPosition="left" class="ml-auto">
                     <p-inputicon>
                         <i class="pi pi-search"></i>
@@ -19,30 +33,38 @@
                 </p-iconfield>
             </div>
         </ng-template>
-        <ng-template #header>
-            <tr>
-                <th style="min-width: 12rem">Name</th>
-                <th style="min-width: 12rem">Email</th>
-                <th style="min-width: 10rem">Phone</th>
-                <th style="min-width: 12rem">Person Type</th>
 
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 3rem">
+                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                </th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Person Type</th>
             </tr>
         </ng-template>
-        <ng-template #body let-client>
-            <tr class="cursor-pointer hover:bg-gray-200" (click)="navigateToProfile(client.id_client)">
+
+        <ng-template pTemplate="body" let-client>
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="client"></p-tableCheckbox>
+                </td>
                 <td>{{ client.nom }} {{ client.prenom }}</td>
                 <td>{{ client.email }}</td>
                 <td>{{ client.tel }}</td>
                 <td>{{ client.type_personne }}</td>
-
             </tr>
         </ng-template>
-        <ng-template #emptymessage>
+
+        <ng-template pTemplate="emptymessage">
             <tr>
                 <td colspan="5">No clients found.</td>
             </tr>
         </ng-template>
-        <ng-template #loadingbody>
+
+        <ng-template pTemplate="loadingbody">
             <tr>
                 <td colspan="5">Loading client data. Please wait.</td>
             </tr>
@@ -50,47 +72,51 @@
     </p-table>
 </div>
 
-<!-- 🔹 Pop-Up Dialog for Adding a Client -->
-<p-dialog header="Add Client" [(visible)]="displayDialog" [modal]="true" [breakpoints]="{ '960px': '75vw' }"
-    [style]="{ width: '30vw' }">
-    <div class="p-6 space-y-4">
-        <div class="space-y-1">
-            <label class="block text-gray-700 font-medium">Name</label>
-            <input type="text" pInputText [(ngModel)]="newClient.nom"
-                class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+<!-- ✅ Add Client Dialog -->
+<p-dialog header="Add Client" [(visible)]="displayDialog" [modal]="true" [style]="{ width: '35vw' }" [breakpoints]="{ '960px': '90vw' }">
+    <div class="p-fluid p-4 space-y-4">
+        <div class="p-field p-grid">
+            <label for="nom" class="p-col-12 p-md-4 font-medium">Name</label>
+            <div class="p-col-12 p-md-8">
+                <input id="nom" type="text" pInputText [(ngModel)]="newClient.nom" class="w-full" />
+            </div>
         </div>
 
-        <div class="space-y-1">
-            <label class="block text-gray-700 font-medium">First Name</label>
-            <input type="text" pInputText [(ngModel)]="newClient.prenom"
-                class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        <div class="p-field p-grid">
+            <label for="prenom" class="p-col-12 p-md-4 font-medium">First Name</label>
+            <div class="p-col-12 p-md-8">
+                <input id="prenom" type="text" pInputText [(ngModel)]="newClient.prenom" class="w-full" />
+            </div>
         </div>
 
-        <div class="space-y-1">
-            <label class="block text-gray-700 font-medium">Email</label>
-            <input type="email" pInputText [(ngModel)]="newClient.email"
-                class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        <div class="p-field p-grid">
+            <label for="email" class="p-col-12 p-md-4 font-medium">Email</label>
+            <div class="p-col-12 p-md-8">
+                <input id="email" type="email" pInputText [(ngModel)]="newClient.email" class="w-full" />
+            </div>
         </div>
 
-        <div class="space-y-1">
-            <label class="block text-gray-700 font-medium">Phone</label>
-            <input type="text" pInputText [(ngModel)]="newClient.tel"
-                class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        <div class="p-field p-grid">
+            <label for="tel" class="p-col-12 p-md-4 font-medium">Phone</label>
+            <div class="p-col-12 p-md-8">
+                <input id="tel" type="text" pInputText [(ngModel)]="newClient.tel" class="w-full" />
+            </div>
         </div>
 
-        <div class="space-y-1">
-            <label class="block text-gray-700 font-medium">Person Type</label>
-            <input type="text" pInputText [(ngModel)]="newClient.type_personne"
-                class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" />
+        <div class="p-field p-grid">
+            <label for="type" class="p-col-12 p-md-4 font-medium">Person Type</label>
+            <div class="p-col-12 p-md-8">
+                <input id="type" type="text" pInputText [(ngModel)]="newClient.type_personne" class="w-full" />
+            </div>
         </div>
     </div>
 
-    <ng-template #footer>
-        <div class="flex justify-end space-x-4 p-4 bg-gray-100 rounded-b-lg">
-            <button pButton label="Cancel" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-                (click)="displayDialog = false"></button>
-            <button pButton label="Save" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-                (click)="addClient(newClient)"></button>
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-3 px-4 pb-4">
+            <button pButton label="Cancel" class="p-button-outlined" (click)="displayDialog = false"></button>
+            <button pButton label="Save" class="p-button-primary" (click)="addClient()"></button>
         </div>
     </ng-template>
 </p-dialog>
+
+<p-toast></p-toast>
