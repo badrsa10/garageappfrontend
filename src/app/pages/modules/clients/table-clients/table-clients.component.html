@@ -47,8 +47,8 @@
         </ng-template>
 
         <ng-template pTemplate="body" let-client>
-            <tr>
-                <td>
+            <tr (click)="navigateToProfile(client.id_client)">
+                <td (click)="$event.stopPropagation()">
                     <p-tableCheckbox [value]="client"></p-tableCheckbox>
                 </td>
                 <td>{{ client.nom }} {{ client.prenom }}</td>

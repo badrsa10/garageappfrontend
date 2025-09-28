@@ -197,5 +197,6 @@ export class TableVehiculesComponent implements OnInit {
 
     navigateToVehicule(id: string) {
         this.router.navigateByUrl(`/modules/vehicule-profile/${id}`);
+        console.log('selected vehicule ',id)
     }
 }

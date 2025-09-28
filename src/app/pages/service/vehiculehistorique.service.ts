@@ -1,97 +1,87 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 export interface VehiculeHistorique {
-  id_vehicule_historique: string;
-  vehiculeId?: string;
-  date_historique: Date; // ISO-8601
-  kilometrage?: number;
-  pieceId?: string;
-  serviceId?: string;
-  libelle_pieceouservice?: string;
-  remarque?: string;
+    id_vehicule_historique: string;
+    vehiculeId?: string;
+    date_historique: Date;
+    kilometrage?: number;
+    pieceId?: string | null;
+    serviceId?: string | null;
+    libelle_pieceouservice?: string;
+    remarque?: string;
 }
 
-export const MOCK_VEHICULE_HISTORIQUES: VehiculeHistorique[] = [
-  { id_vehicule_historique: 'VH001', vehiculeId: 'V001', date_historique: new Date('2023-05-10T00:00:00.000Z'), kilometrage: 50000, libelle_pieceouservice: 'Vidange huile moteur', remarque: 'Huile 5W-30 + filtre remplacé' },
-  { id_vehicule_historique: 'VH002', vehiculeId: 'V001', date_historique: new Date('2024-02-15T00:00:00.000Z'), kilometrage: 58000, libelle_pieceouservice: 'Remplacement plaquettes avant', remarque: 'Freinage optimisé' },
-  { id_vehicule_historique: 'VH003', vehiculeId: 'V002', date_historique: new Date('2023-07-20T00:00:00.000Z'), kilometrage: 38000, libelle_pieceouservice: 'Changement pneus avant', remarque: 'Pneus Michelin Primacy' },
-  { id_vehicule_historique: 'VH004', vehiculeId: 'V002', date_historique: new Date('2024-03-18T00:00:00.000Z'), kilometrage: 44000, libelle_pieceouservice: 'Contrôle technique', remarque: 'Aucune anomalie détectée' },
-  { id_vehicule_historique: 'VH005', vehiculeId: 'V003', date_historique: new Date('2023-09-05T00:00:00.000Z'), kilometrage: 22000, libelle_pieceouservice: 'Entretien transmission', remarque: 'Huile boîte changée' },
-  { id_vehicule_historique: 'VH006', vehiculeId: 'V004', date_historique: new Date('2023-11-22T00:00:00.000Z'), kilometrage: 30000, libelle_pieceouservice: 'Remplacement batterie', remarque: 'Batterie Bosch garantie 3 ans' },
-  { id_vehicule_historique: 'VH007', vehiculeId: 'V005', date_historique: new Date('2024-01-12T00:00:00.000Z'), kilometrage: 14000, libelle_pieceouservice: 'Révision complète', remarque: 'Filtres, huile, freins vérifiés' },
-  { id_vehicule_historique: 'VH008', vehiculeId: 'V006', date_historique: new Date('2023-06-28T00:00:00.000Z'), kilometrage: 45000, libelle_pieceouservice: 'Nettoyage circuit de refroidissement', remarque: 'Liquide remplacé' },
-  { id_vehicule_historique: 'VH009', vehiculeId: 'V007', date_historique: new Date('2024-04-14T00:00:00.000Z'), kilometrage: 53000, libelle_pieceouservice: 'Changement amortisseurs avant', remarque: 'Amortisseurs Bilstein installés' },
-  { id_vehicule_historique: 'VH010', vehiculeId: 'V008', date_historique: new Date('2023-12-01T00:00:00.000Z'), kilometrage: 10000, libelle_pieceouservice: 'Installation attelage remorque', remarque: 'Homologation OK' },
-  { id_vehicule_historique: 'VH011', vehiculeId: 'V009', date_historique: new Date('2024-02-05T00:00:00.000Z'), kilometrage: 38000, libelle_pieceouservice: 'Remplacement courroie accessoire', remarque: 'Tension réglée' },
-  { id_vehicule_historique: 'VH012', vehiculeId: 'V010', date_historique: new Date('2023-10-16T00:00:00.000Z'), kilometrage: 27000, libelle_pieceouservice: 'Changement filtres à air et habitacle', remarque: 'Filtre à air sport installé' },
-  { id_vehicule_historique: 'VH013', vehiculeId: 'V011', date_historique: new Date('2024-03-01T00:00:00.000Z'), kilometrage: 35000, libelle_pieceouservice: 'Recharge climatisation', remarque: 'Gaz R134a ajouté' },
-  { id_vehicule_historique: 'VH014', vehiculeId: 'V012', date_historique: new Date('2023-08-08T00:00:00.000Z'), kilometrage: 19000, libelle_pieceouservice: 'Vidange boîte automatique', remarque: 'Huile ATF neuve' }
-];
+export interface PaginationMeta {
+    totalHistorique: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+}
 
-// vehicule-historique.service.ts
-
+interface VehiculeHistoriqueApiResponse {
+    data: VehiculeHistorique[];
+    meta: PaginationMeta;
+}
 
 @Injectable({ providedIn: 'root' })
 export class VehiculeHistoriqueService {
-  private historiques: VehiculeHistorique[] = [...MOCK_VEHICULE_HISTORIQUES];
+    private readonly API_URL = 'http://localhost:3000/api/vehicule_historique';
 
-  constructor() {}
+    constructor(private http: HttpClient) {}
 
-  // 🔹 Récupérer tous les historiques
-  getVehiculeHistoriques(): Observable<VehiculeHistorique[]> {
-    return of([...this.historiques]);
-  }
+    /** 🔹 Get paginated historiques with optional search and vehiculeId */
+    getHistorique(page: number, limit: number, search?: string, vehiculeId?: string): Observable<VehiculeHistoriqueApiResponse> {
+        let params = new HttpParams().set('page', page).set('limit', limit);
 
-  // 🔹 Récupérer un historique par ID
-  getVehiculeHistoriqueById(id: string): Observable<VehiculeHistorique | undefined> {
-    return of(this.historiques.find(h => h.id_vehicule_historique === id));
-  }
+        if (search?.trim()) {
+            params = params.set('search', search.trim());
+        }
 
-  // 🔹 Récupérer les historiques d’un véhicule
-  getVehiculeHistoriquesByVehiculeId(vehiculeId: string): Observable<VehiculeHistorique[]> {
-    return of(this.historiques.filter(h => h.vehiculeId === vehiculeId));
-  }
+        if (vehiculeId) {
+            params = params.set('vehiculeId', vehiculeId);
+        }
 
-  // 🔹 Ajouter un historique
-  addVehiculeHistorique(payload: Omit<VehiculeHistorique, 'id_vehicule_historique'>): Observable<VehiculeHistorique> {
-    const entity: VehiculeHistorique = {
-      id_vehicule_historique: this.nextId(),
-      ...payload
-    };
-    this.historiques = [...this.historiques, entity];
-    return of(entity);
-  }
+        return this.http.get<VehiculeHistoriqueApiResponse>(this.API_URL, { params }).pipe(catchError(this.handleError));
+    }
 
-  // 🔹 Mettre à jour un historique
-  updateVehiculeHistorique(id: string, updates: Partial<VehiculeHistorique>): Observable<VehiculeHistorique | undefined> {
-    const index = this.historiques.findIndex(h => h.id_vehicule_historique === id);
-    if (index === -1) return of(undefined);
+    /** 🔹 Get a single historique by ID */
+    getHistoriqueById(id: string): Observable<VehiculeHistorique> {
+        return this.http.get<VehiculeHistorique>(`${this.API_URL}/${id}`).pipe(catchError(this.handleError));
+    }
 
-    const updated = { ...this.historiques[index], ...updates };
-    this.historiques = [
-      ...this.historiques.slice(0, index),
-      updated,
-      ...this.historiques.slice(index + 1)
-    ];
-    return of(updated);
-  }
+    /** 🔹 Create a new historique */
+    createHistorique(payload: Omit<VehiculeHistorique, 'id_vehicule_historique'>): Observable<VehiculeHistorique> {
+        return this.http.post<VehiculeHistorique>(this.API_URL, payload).pipe(catchError(this.handleError));
+    }
 
-  // 🔹 Supprimer un historique
-  deleteVehiculeHistorique(id: string): Observable<boolean> {
-    const before = this.historiques.length;
-    this.historiques = this.historiques.filter(h => h.id_vehicule_historique !== id);
-    return of(this.historiques.length < before);
-  }
+    /** 🔹 Update an existing historique */
+    updateHistorique(id: string, updates: Partial<VehiculeHistorique>): Observable<VehiculeHistorique> {
+        return this.http.put<VehiculeHistorique>(`${this.API_URL}/${id}`, updates).pipe(catchError(this.handleError));
+    }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────────
+    /** 🔹 Delete a historique */
+    deleteHistorique(id: string): Observable<boolean> {
+        return this.http.delete<{ success: boolean }>(`${this.API_URL}/${id}`).pipe(
+            map((res) => res?.success === true),
+            catchError(this.handleError)
+        );
+    }
 
-  private nextId(): string {
-    const max = this.historiques.reduce((acc, h) => {
-      const n = parseInt(h.id_vehicule_historique.replace(/\D/g, ''), 10);
-      return isNaN(n) ? acc : Math.max(acc, n);
-    }, 0);
-    return `VH${String(max + 1).padStart(3, '0')}`;
-  }
+    /** 🔹 Fetch historiques for a specific vehicule via query param */
+    getVehiculeHistoriquesByVehiculeId(vehiculeId: string): Observable<VehiculeHistorique[]> {
+        const params = new HttpParams().set('vehiculeId', vehiculeId);
+        return this.http.get<{ data: VehiculeHistorique[] }>(this.API_URL, { params }).pipe(
+            map((res) => res.data),
+            catchError(this.handleError)
+        );
+    }
+
+    /** 🔧 Error handler */
+    private handleError(error: HttpErrorResponse) {
+        console.error('❌ Historique API error:', error);
+        return throwError(() => error);
+    }
 }

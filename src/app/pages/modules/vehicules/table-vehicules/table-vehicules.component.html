@@ -16,7 +16,7 @@
         [rowHover]="true"
         [showGridlines]="true"
         [paginator]="true"
-        [totalRecords]="totalRecords"
+        [totalRecords]="totalVehicules"
         [lazy]="true"
         (onLazyLoad)="onPageChange($event)"
         responsiveLayout="scroll"
@@ -129,7 +129,7 @@
     <ng-template pTemplate="footer">
         <div class="flex justify-end gap-3 px-4 pb-4">
             <button pButton label="Cancel" class="p-button-outlined" (click)="displayDialog = false"></button>
-            <button pButton label="Save" class="p-button-primary" (click)="addVehicule(newVehicule)"></button>
+            <button pButton label="Save" class="p-button-primary" (click)="addVehicule()"></button>
         </div>
     </ng-template>
 </p-dialog>

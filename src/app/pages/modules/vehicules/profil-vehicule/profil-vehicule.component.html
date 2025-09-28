@@ -1,29 +1,31 @@
 <div class="p-6 bg-gray-50">
     <!-- 🔹 Control Panel -->
     <div class="flex justify-between items-center p-4 rounded-lg mb-6">
-        <button pButton class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-md transition" (click)="goBack()"> < Précédent</button>
+        <button pButton class="p-button-info p-button-outlined px-4 py-2 rounded-lg hover:bg-blue-700 shadow-md transition" (click)="goBack()">&lt; Précédent</button>
 
         <div class="flex gap-4">
-            <button pButton class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 shadow-md transition" (click)="openEditDialog()">Modifier Info</button>
+            <button pButton class="p-button-warn p-button-outlined text-white px-4 py-2 rounded-lg hover:bg-yellow-600 shadow-md transition" (click)="openEditDialog()">Modifier Info</button>
 
-            <button pButton class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 shadow-md transition" (click)="deleteVehicule()">Supprimer Véhicule</button>
+            <button pButton class="p-button-danger p-button-outlined px-4 py-2 rounded-lg hover:bg-red-700 shadow-md transition" (click)="deleteVehicule()">Supprimer Véhicule</button>
         </div>
     </div>
 
-    <!-- 🔹 Vehicle Information -->
-    <div *ngIf="vehicule && client" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Vehicle Info Card -->
-        <div class="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+    <!-- 🔹 Vehicle & Owner Info -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Vehicle Info -->
+        <!-- Vehicle Info -->
+        <div *ngIf="vehicule" class="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
             <h2 class="text-2xl font-semibold mb-4 text-gray-800">Vehicle Profile</h2>
             <p class="text-gray-700"><strong>Marque:</strong> {{ vehicule.marque }}</p>
             <p class="text-gray-700"><strong>Modèle:</strong> {{ vehicule.modele }}</p>
             <p class="text-gray-700"><strong>Année:</strong> {{ vehicule.annee }}</p>
             <p class="text-gray-700"><strong>Matricule:</strong> {{ vehicule.matricule }}</p>
+            <p class="text-gray-700"><strong>Kilométrage:</strong> {{ vehicule.kilometrage | number }}</p>
             <p class="text-gray-700" *ngIf="vehicule.numeroSerie"><strong>Numéro de série:</strong> {{ vehicule.numeroSerie }}</p>
         </div>
 
-        <!-- Client/Owner Info Card -->
-        <div class="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+        <!-- Owner Info -->
+        <div *ngIf="client" class="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
             <h2 class="text-2xl font-semibold mb-4 text-gray-800">Owner Profile</h2>
             <p class="text-gray-700"><strong>Nom:</strong> {{ client.nom }}</p>
             <p class="text-gray-700"><strong>Prénom:</strong> {{ client.prenom }}</p>
@@ -32,50 +34,81 @@
         </div>
     </div>
 
-    <!-- (Optional) Related Data table — e.g., maintenance history -->
-    <div class="mt-6" *ngIf="historiques.length > 0">
-        <h3 class="text-xl font-semibold mb-4">Maintenance History</h3>
-        <div class="overflow-x-auto">
-            <p-table #dt [value]="historiques" [paginator]="true" [rows]="10" sortField="date_historique" 
-                [sortOrder]="-1" [globalFilterFields]="['date_historique', 'libelle_pieceouservice', 'remarque']">
-                <ng-template pTemplate="caption" #caption>
-                    <div class="flex justify-between items-center flex-column sm:flex-row">
-                        <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt)">Clear</button>
-                        <p-iconfield iconPosition="left" class="ml-auto px-auto">
-                            <p-inputicon>
-                                <i class="pi pi-search"></i>
-                            </p-inputicon>
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search Historique" />
-                        </p-iconfield>
-                    </div>
-                </ng-template>
+    <!-- 🔹 Maintenance History -->
+    <div class="mt-6">
+        <ng-container *ngIf="historiques.length > 0; else noHistorique">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Maintenance History</h3>
+            </div>
 
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th pSortableColumn="date_historique">
-                            Date
-                            <p-sortIcon field="date_historique"></p-sortIcon>
-                        </th>
-                        <th pSortableColumn="libelle_pieceouservice">
-                            Pièce / Service
-                            <p-sortIcon field="libelle_pieceouservice"></p-sortIcon>
-                        </th>
-                        <th>Remarque</th>
-                    </tr>
-                </ng-template>
+            <div class="overflow-x-auto">
+                <p-table
+                    #dt
+                    [value]="historiques"
+                    [globalFilterFields]="['date_historique', 'libelle_pieceouservice', 'remarque']"
+                    [(selection)]="selectedHistoriques"
+                    dataKey="id_vehicule_historique"
+                    [paginator]="true"
+                    [rows]="10"
+                    sortField="date_historique"
+                    [sortOrder]="-1"
+                >
+                    <ng-template pTemplate="caption">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <!-- Left side: Clear + Bulk Delete -->
+                            <div class="flex gap-2">
+                                <button pButton label="Clear" icon="pi pi-filter-slash" class="p-button-outlined" (click)="clear(dt)"></button>
+                                <button pButton label="Supprimer sélection" icon="pi pi-trash" class="p-button-danger p-button-outlined" [disabled]="!selectedHistoriques?.length" (click)="bulkDelete()"></button>
+                            </div>
 
-                <ng-template pTemplate="body" let-h>
-                    <tr>
-                        <td>{{ h.date_historique | date: 'shortDate' }}</td>
-                        <td>{{ h.libelle_pieceouservice }}</td>
-                        <td>{{ h.remarque }}</td>
-                    </tr>
-                </ng-template>
-            </p-table>
-        </div>
+                            <!-- Right side: Ajouter + Search -->
+                            <div class="flex gap-2 items-center">
+                                <button pButton label="Ajouter Historique" icon="pi pi-plus" class="p-button-success p-button-outlined" (click)="openAddHistoriqueDialog()"></button>
+                                <p-iconfield iconPosition="left">
+                                    <p-inputicon>
+                                        <i class="pi pi-search"></i>
+                                    </p-inputicon>
+                                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search Historique" />
+                                </p-iconfield>
+                            </div>
+                        </div>
+                    </ng-template>
+
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 3rem">
+                                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                            </th>
+                            <th pSortableColumn="date_historique">Date <p-sortIcon field="date_historique"></p-sortIcon></th>
+                            <th pSortableColumn="libelle_pieceouservice">Pièce / Service <p-sortIcon field="libelle_pieceouservice"></p-sortIcon></th>
+                            <th>Remarque</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-h>
+                        <tr>
+                            <td>
+                                <p-tableCheckbox [value]="h"></p-tableCheckbox>
+                            </td>
+                            <td>{{ h.date_historique | date: 'shortDate' }}</td>
+                            <td>{{ h.libelle_pieceouservice }}</td>
+                            <td>{{ h.remarque }}</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </ng-container>
+
+        <!-- 🔹 No historiques fallback -->
+        <ng-template #noHistorique>
+            <div class="text-gray-500 italic mt-4 flex flex-col items-start gap-4">
+                <span>Aucun historique de maintenance trouvé pour ce véhicule.</span>
+                <button pButton label="Ajouter Historique" icon="pi pi-plus" class="p-button-success" (click)="openAddHistoriqueDialog()"></button>
+            </div>
+        </ng-template>
     </div>
 
-    <!-- Dialog: Edit Vehicle -->
+    <!-- 🔹 Dialog: Edit Vehicle -->
     <p-dialog header="Edit Vehicle Info" [(visible)]="editDialog" [modal]="true" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '30vw' }">
         <div class="p-6 space-y-4">
             <div class="space-y-1">
@@ -94,13 +127,62 @@
                 <label class="block text-gray-700 font-medium">Matricule</label>
                 <input type="text" pInputText [(ngModel)]="editedVehicule.matricule" class="w-full p-2 border rounded-lg" />
             </div>
+            <div class="space-y-1">
+                <label class="block text-gray-700 font-medium">Kilométrage</label>
+                <input type="number" pInputText [(ngModel)]="editedVehicule.kilometrage" class="w-full p-2 border rounded-lg" />
+            </div>
         </div>
 
-        <ng-template #footer>
-            <div class="flex justify-end space-x-4 p-4 bg-gray-100 rounded-b-lg">
-                <button pButton label="Cancel" class="bg-gray-500 text-white px-4 py-2 rounded-lg" (click)="editDialog = false">Fermer</button>
-                <button pButton label="Save Changes" class="bg-blue-500 text-white px-4 py-2 rounded-lg" (click)="saveVehiculeChanges()">Modifier</button>
+        <ng-template pTemplate="footer">
+            <div class="flex justify-end space-x-4 p-4">
+                <button pButton label="Cancel" class="bg-gray-500 text-white px-4 py-2 rounded-lg" (click)="editDialog = false"></button>
+                <button pButton label="Save Changes" class="bg-blue-500 text-white px-4 py-2 rounded-lg" (click)="saveVehiculeChanges()"></button>
             </div>
         </ng-template>
     </p-dialog>
+
+    <!-- 🔹 Dialog: Ajouter un Historique -->
+    <p-dialog header="Ajouter un Historique" [(visible)]="addHistoriqueDialog" [modal]="true" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '35vw' }">
+        <div class="p-6 space-y-4">
+            <div class="space-y-1">
+                <label class="block font-medium">Date</label>
+                <input type="date" pInputText [(ngModel)]="newHistorique.date_historique" class="w-full p-2 border rounded-lg" />
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-medium">Kilométrage</label>
+                <input type="number" pInputText [(ngModel)]="newHistorique.kilometrage" class="w-full p-2 border rounded-lg" />
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-medium">Type</label>
+                <p-dropdown [options]="historiqueTypes" [(ngModel)]="selectedType" placeholder="Sélectionner un type" class="w-full"></p-dropdown>
+            </div>
+
+            <div class="space-y-1" *ngIf="selectedType === 'piece'">
+                <label class="block font-medium">Pièce</label>
+                <p-dropdown [options]="pieces" optionLabel="libelle" optionValue="id_piece" [(ngModel)]="newHistorique.pieceId" placeholder="Sélectionner une pièce" class="w-full"></p-dropdown>
+            </div>
+
+            <div class="space-y-1" *ngIf="selectedType === 'service'">
+                <label class="block font-medium">Service</label>
+                <p-dropdown [options]="services" optionLabel="libelle" optionValue="id_service" [(ngModel)]="newHistorique.serviceId" placeholder="Sélectionner un service" class="w-full"></p-dropdown>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-medium">Remarque</label>
+                <textarea pInputTextarea [(ngModel)]="newHistorique.remarque" rows="3" class="w-full p-2 border rounded-lg"></textarea>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <div class="flex justify-end space-x-4 p-4">
+                <button pButton label="Annuler" class="bg-gray-500 text-white px-4 py-2 rounded-lg" (click)="addHistoriqueDialog = false"></button>
+                <button pButton label="Ajouter" class="bg-green-600 text-white px-4 py-2 rounded-lg" (click)="submitHistorique()"></button>
+            </div>
+        </ng-template>
+    </p-dialog>
+
+    <!-- 🔹 Toast for messages -->
+    <p-toast></p-toast>
 </div>

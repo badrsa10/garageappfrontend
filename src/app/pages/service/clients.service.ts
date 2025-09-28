@@ -20,6 +20,7 @@ export interface PaginationMeta {
 }
 
 interface ClientApiResponse {
+  map(arg0: (c: any) => { id_client: any; fullName: string; }): { id_client: string; fullName: string; }[];
   data: Client[];
   meta: PaginationMeta;
 }
