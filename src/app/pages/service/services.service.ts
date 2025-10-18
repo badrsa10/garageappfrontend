@@ -21,7 +21,7 @@ interface ServiceApiResponse {
 
 @Injectable({ providedIn: 'root' })
 export class ServiceService {
-  private readonly API_URL = 'http://localhost:3000/api/service';
+  private readonly API_URL = 'http://http://167.99.90.103:3000/api/client';
 
   constructor(private http: HttpClient) {}
 
