@@ -29,7 +29,7 @@ interface PieceApiResponse {
     providedIn: 'root'
 })
 export class PieceService {
-    private readonly API_URL = 'http://http://167.99.90.103:3000/api/client';
+    private readonly API_URL = 'http://167.99.90.103:3000/api/piece';
 
     constructor(private http: HttpClient) {}
 
