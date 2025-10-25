@@ -30,7 +30,7 @@ interface VehiculeApiResponse {
     providedIn: 'root'
 })
 export class VehiculeService {
-    private readonly API_URL = 'http://167.99.90.103:3000/api/vehicule';
+    private readonly API_URL = 'http://161.35.45.86:3000/api/vehicule';
 
     constructor(private http: HttpClient) {}
 
