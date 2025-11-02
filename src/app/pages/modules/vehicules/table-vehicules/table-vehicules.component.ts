@@ -14,6 +14,7 @@ import { MessageService } from 'primeng/api';
 import { Client, ClientService } from '../../../service/clients.service';
 import { Vehicule, VehiculeService } from '../../../service/vehicules.service';
 import { DropdownModule } from 'primeng/dropdown';
+import { MarqueModel,MarqueModelService } from '../../../service/marque-model.service';
 
 @Component({
     selector: 'table-vehicules',
@@ -42,7 +43,11 @@ export class TableVehiculesComponent implements OnInit {
 
     displayDialog = false;
     newVehicule: Partial<Vehicule> = {};
-    clients: { id_client: string, fullName: string }[] = [];
+    clients: { id_client: string; fullName: string }[] = [];
+
+    marqueModels: MarqueModel[] = [];
+    marques: string[] = [];
+    modeles: string[] = [];
 
     @ViewChild('filter') filter!: ElementRef;
 
@@ -50,12 +55,15 @@ export class TableVehiculesComponent implements OnInit {
         private vehiculeService: VehiculeService,
         private messageService: MessageService,
         private clientService: ClientService,
+        private marqueModelService: MarqueModelService,
         private router: Router
     ) {}
 
     ngOnInit() {
         this.fetchVehicules();
+        this.fetchClients();
     }
+
     fetchClients() {
         this.clientService.getClients(1, 100).subscribe({
             next: (clients) => {
@@ -85,6 +93,23 @@ export class TableVehiculesComponent implements OnInit {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch vehicules' });
             }
         });
+    }
+
+    fetchMarqueModels() {
+        this.marqueModelService.getAll().subscribe({
+            next: (data) => {
+                this.marqueModels = data;
+                this.marques = [...new Set(data.map((m) => m.marque))];
+            },
+            error: (err) => {
+                console.error('Error fetching marque models:', err);
+            }
+        });
+    }
+
+    onMarqueChange(selectedMarque: string) {
+        this.modeles = this.marqueModels.filter((m) => m.marque === selectedMarque).map((m) => m.model);
+        this.newVehicule.modele = ''; // reset model
     }
 
     onPageChange(event: any) {
@@ -197,6 +222,6 @@ export class TableVehiculesComponent implements OnInit {
 
     navigateToVehicule(id: string) {
         this.router.navigateByUrl(`/modules/vehicule-profile/${id}`);
-        console.log('selected vehicule ',id)
+        console.log('selected vehicule ', id);
     }
 }

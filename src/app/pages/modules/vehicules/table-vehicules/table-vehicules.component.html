@@ -76,17 +76,19 @@
 <!-- ✅ Add Vehicule Dialog -->
 <p-dialog header="Add Vehicule" [(visible)]="displayDialog" [modal]="true" [style]="{ width: '35vw' }" [breakpoints]="{ '960px': '90vw' }">
     <div class="p-fluid p-4 space-y-4">
+        <!-- Marque Dropdown -->
         <div class="p-field p-grid">
             <label for="marque" class="p-col-12 p-md-4 font-medium">Marque</label>
             <div class="p-col-12 p-md-8">
-                <input id="marque" type="text" pInputText [(ngModel)]="newVehicule.marque" class="w-full" />
+                <p-dropdown [options]="marques" [(ngModel)]="newVehicule.marque" placeholder="Select Marque" (onChange)="onMarqueChange($event.value)" [filter]="true" filterPlaceholder="Search marque..." class="w-full" appendTo="body" />
             </div>
         </div>
 
+        <!-- Modele Dropdown -->
         <div class="p-field p-grid">
             <label for="modele" class="p-col-12 p-md-4 font-medium">Modèle</label>
             <div class="p-col-12 p-md-8">
-                <input id="modele" type="text" pInputText [(ngModel)]="newVehicule.modele" class="w-full" />
+                <p-dropdown [options]="modeles" [(ngModel)]="newVehicule.modele" placeholder="Select Modèle" [filter]="true" filterPlaceholder="Search modèle..." class="w-full" appendTo="body" />
             </div>
         </div>
 
@@ -121,7 +123,7 @@
         <div class="p-field p-grid">
             <label for="client" class="p-col-12 p-md-4 font-medium">Client</label>
             <div class="p-col-12 p-md-8">
-                <p-dropdown [options]="clients" optionLabel="fullName" optionValue="id_client" placeholder="Select Client" [(ngModel)]="newVehicule.clientId" class="w-full" appendTo="body"></p-dropdown>
+                <p-dropdown [options]="clients" optionLabel="fullName" optionValue="id_client" [(ngModel)]="newVehicule.clientId" placeholder="Select Client" [filter]="true" filterPlaceholder="Search client..." class="w-full" appendTo="body" />
             </div>
         </div>
     </div>
