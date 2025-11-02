@@ -14,7 +14,7 @@ import { MessageService } from 'primeng/api';
 import { Client, ClientService } from '../../../service/clients.service';
 import { Vehicule, VehiculeService } from '../../../service/vehicules.service';
 import { DropdownModule } from 'primeng/dropdown';
-import { MarqueModel,MarqueModelService } from '../../../service/marque-model.service';
+import { MarqueModel, MarqueModelService } from '../../../service/marque-model.service';
 
 @Component({
     selector: 'table-vehicules',
@@ -62,6 +62,7 @@ export class TableVehiculesComponent implements OnInit {
     ngOnInit() {
         this.fetchVehicules();
         this.fetchClients();
+        this.fetchMarqueModels();
     }
 
     fetchClients() {
@@ -109,7 +110,7 @@ export class TableVehiculesComponent implements OnInit {
 
     onMarqueChange(selectedMarque: string) {
         this.modeles = this.marqueModels.filter((m) => m.marque === selectedMarque).map((m) => m.model);
-        this.newVehicule.modele = ''; // reset model
+        this.newVehicule.modele = '';
     }
 
     onPageChange(event: any) {
