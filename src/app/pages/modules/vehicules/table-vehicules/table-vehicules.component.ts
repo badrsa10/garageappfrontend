@@ -152,6 +152,7 @@ export class TableVehiculesComponent implements OnInit {
         this.vehiculeService.createVehicule({ marque, modele, annee, kilometrage, matricule, numeroSerie, clientId }).subscribe({
             next: (created) => {
                 this.messageService.add({ severity: 'success', summary: 'Created', detail: `Vehicule "${created.matricule}" added` });
+                console.log("Creating vehicule with:", this.newVehicule);
                 this.displayDialog = false;
                 this.fetchVehicules(1);
             },
