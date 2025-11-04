@@ -70,8 +70,8 @@ export class TableVehiculesComponent implements OnInit {
 
     fetchClients() {
         this.clientService.getClients(1, 100).subscribe({
-            next: (clients) => {
-                this.clients = clients.map((c) => ({
+            next: (response) => {
+                this.clients = response.data.map((c) => ({
                     id_client: c.id_client,
                     fullName: `${c.nom} ${c.prenom}`
                 }));
