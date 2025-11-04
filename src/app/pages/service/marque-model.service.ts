@@ -16,7 +16,7 @@ export class MarqueModelService {
 
   // ✅ Fetch all marque/model pairs
   getAll(): Observable<MarqueModel[]> {
-    return this.http.get<{ data: MarqueModel[] }>(`${this.API_URL}?limit=100&page=1`)
+    return this.http.get<{ data: MarqueModel[] }>(`${this.API_URL}?limit=1000&page=1`)
       .pipe(map(res => res.data));
   }
 
