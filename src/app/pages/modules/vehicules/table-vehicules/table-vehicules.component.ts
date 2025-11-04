@@ -62,6 +62,9 @@ export class TableVehiculesComponent implements OnInit {
     ngOnInit() {
         this.fetchVehicules();
         this.fetchClients();
+        this.marqueModelService.getAllMarques().subscribe((marques) => {
+            this.marques = marques;
+        });
         this.fetchMarqueModels();
     }
 
@@ -109,8 +112,10 @@ export class TableVehiculesComponent implements OnInit {
     }
 
     onMarqueChange(selectedMarque: string) {
-        this.modeles = this.marqueModels.filter((m) => m.marque === selectedMarque).map((m) => m.model);
-        this.newVehicule.modele = '';
+        this.marqueModelService.getModelsByMarque(selectedMarque).subscribe((models) => {
+            this.modeles = models;
+            this.newVehicule.modele = '';
+        });
     }
 
     onPageChange(event: any) {
