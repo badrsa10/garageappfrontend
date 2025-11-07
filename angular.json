@@ -39,7 +39,9 @@
                         "outputPath": "dist/sakai-ng",
                         "index": "src/index.html",
                         "browser": "src/main.ts",
-                        "polyfills": ["zone.js"],
+                        "polyfills": [
+                            "zone.js"
+                        ],
                         "tsConfig": "tsconfig.app.json",
                         "inlineStyleLanguage": "scss",
                         "assets": [
@@ -48,7 +50,9 @@
                                 "input": "public"
                             }
                         ],
-                        "styles": ["node_modules/primeng/resources/themes/saga-blue/theme.css", "node_modules/primeng/resources/primeng.min.css", "node_modules/primeicons/primeicons.css", "src/styles.css"],
+                        "styles": [
+                            "src/styles.scss"
+                        ],
                         "scripts": []
                     },
                     "configurations": {
@@ -86,6 +90,7 @@
                         }
                     },
                     "defaultConfiguration": "development"
+                    
                 },
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n"
@@ -93,7 +98,10 @@
                 "test": {
                     "builder": "@angular-devkit/build-angular:karma",
                     "options": {
-                        "polyfills": ["zone.js", "zone.js/testing"],
+                        "polyfills": [
+                            "zone.js",
+                            "zone.js/testing"
+                        ],
                         "tsConfig": "tsconfig.spec.json",
                         "inlineStyleLanguage": "scss",
                         "assets": [
@@ -102,7 +110,9 @@
                                 "input": "public"
                             }
                         ],
-                        "styles": ["node_modules/primeng/resources/themes/saga-blue/theme.css", "node_modules/primeng/resources/primeng.min.css", "node_modules/primeicons/primeicons.css", "src/styles.css"],
+                        "styles": [
+                            "src/styles.scss"
+                        ],
                         "scripts": []
                     }
                 }
