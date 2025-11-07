@@ -24,7 +24,7 @@ import { SliderModule } from 'primeng/slider';
 import { TagModule } from 'primeng/tag';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { Footer, MessageService } from 'primeng/api';
+import { ConfirmationService, Footer, MessageService } from 'primeng/api';
 import { ServiceService } from '../../../service/services.service';
 import { PieceService } from '../../../service/pieces.service';
 import { MarqueModelService, MarqueModel } from '../../../service/marque-model.service';
@@ -62,7 +62,7 @@ interface NewHistoriquePayload {
         SelectModule,
         MultiSelectModule
     ],
-    providers: [MessageService]
+    providers: [MessageService, ConfirmationService]
 })
 export class ProfilVehiculeComponent implements OnInit {
     @ViewChild('filter') filter!: ElementRef;
@@ -120,6 +120,7 @@ export class ProfilVehiculeComponent implements OnInit {
         private messageService: MessageService,
         private clientService: ClientService,
         private marqueModelService: MarqueModelService,
+        private confirmationService: ConfirmationService,
         private router: Router
     ) {}
 
@@ -230,11 +231,43 @@ export class ProfilVehiculeComponent implements OnInit {
         });
     }
 
+    confirmDeleteVehicule(): void {
+        if (!this.vehicule) return;
+
+        this.confirmationService.confirm({
+            message: `Are you sure you want to delete "${this.vehicule.matricule}"?`,
+            header: 'Confirm Deletion',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {
+                this.deleteVehicule(); // actual deletion logic
+            }
+        });
+    }
+
     deleteVehicule(): void {
         if (!this.vehicule) return;
 
-        this.vehiculeService.deleteVehicule(this.vehicule.id_vehicule).subscribe(() => {
-            this.router.navigate(['/modules/vehicules']);
+        this.vehiculeService.deleteVehicule(this.vehicule.id_vehicule).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Deleted',
+                    detail: `Vehicule deleted successfully`
+                });
+
+                // ✅ Navigate back to list
+                this.router.navigate(['/modules/vehicules']);
+
+                // ✅ Optionally refresh list if you're staying on the same page
+                // this.fetchVehicules(1);
+            },
+            error: () => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Failed to delete vehicule'
+                });
+            }
         });
     }
 
