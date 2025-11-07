@@ -114,13 +114,13 @@
             <div class="space-y-1">
                 <label class="block font-medium">Marque</label>
                 <div class="p-col-12 p-md-8">
-                    <p-dropdown [options]="marques" [(ngModel)]="newVehicule.marque" placeholder="Select Marque" (onChange)="onMarqueChange($event.value)" [filter]="true" filterPlaceholder="Search marque..." class="w-full" appendTo="body" />
+                    <p-dropdown [options]="marques" [(ngModel)]="editedVehicule.marque" placeholder="Select Marque" (onChange)="onMarqueChange($event.value)" [filter]="true" filterPlaceholder="Search marque..." class="w-full" appendTo="body" />
                 </div>
             </div>
             <div class="space-y-1">
                 <label class="block text-gray-700 font-medium">Modèle</label>
                 <div class="p-col-12 p-md-8">
-                    <p-dropdown [options]="modeles" [(ngModel)]="newVehicule.modele" placeholder="Select Modèle" [filter]="true" filterPlaceholder="Search modèle..." class="w-full" appendTo="body" />
+                    <p-dropdown [options]="modeles" [(ngModel)]="editedVehicule.modele" placeholder="Select Modèle" [filter]="true" filterPlaceholder="Search modèle..." class="w-full" appendTo="body" />
                 </div>
             </div>
             <div class="space-y-1">
