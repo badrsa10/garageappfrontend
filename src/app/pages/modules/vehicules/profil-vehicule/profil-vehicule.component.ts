@@ -27,7 +27,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { Footer, MessageService } from 'primeng/api';
 import { ServiceService } from '../../../service/services.service';
 import { PieceService } from '../../../service/pieces.service';
-import { MarqueModelService,MarqueModel } from '../../../service/marque-model.service';
+import { MarqueModelService, MarqueModel } from '../../../service/marque-model.service';
 
 interface NewHistoriquePayload {
     date_historique: string;
@@ -127,15 +127,7 @@ export class ProfilVehiculeComponent implements OnInit {
         this.vehiculeId = this.route.snapshot.paramMap.get('id');
         if (!this.vehiculeId) return;
 
-        this.vehiculeService
-            .getVehiculeById(this.vehiculeId)
-            .pipe(
-                tap((v) => (this.vehicule = v)),
-                switchMap((v) => (v?.clientId ? this.clientService.getClientById(v.clientId) : of(null)))
-            )
-            .subscribe((client) => {
-                this.client = client;
-            });
+        this.getVehiculeById(this.vehiculeId);
 
         this.historiqueService.getVehiculeHistoriquesByVehiculeId(this.vehiculeId).subscribe((data) => {
             this.historiques = data;
@@ -153,6 +145,27 @@ export class ProfilVehiculeComponent implements OnInit {
             this.marques = marques;
         });
         this.fetchMarqueModels();
+    }
+
+    getVehiculeById(id: string): void {
+        this.vehiculeService
+            .getVehiculeById(id)
+            .pipe(
+                tap((v) => (this.vehicule = v)),
+                switchMap((v) => (v?.clientId ? this.clientService.getClientById(v.clientId) : of(null)))
+            )
+            .subscribe({
+                next: (client) => {
+                    this.client = client;
+                },
+                error: () => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to load vehicule or client'
+                    });
+                }
+            });
     }
 
     fetchClients() {
@@ -202,9 +215,18 @@ export class ProfilVehiculeComponent implements OnInit {
     saveVehiculeChanges(): void {
         if (!this.editedVehicule) return;
 
-        this.vehiculeService.updateVehicule(this.editedVehicule.id_vehicule, this.editedVehicule).subscribe(() => {
-            this.vehicule = { ...this.editedVehicule };
-            this.editDialog = false;
+        this.vehiculeService.updateVehicule(this.editedVehicule.id_vehicule, this.editedVehicule).subscribe({
+            next: () => {
+                this.messageService.add({ severity: 'success', summary: 'Updated', detail: `Vehicule "${this.editedVehicule.matricule}" updated` });
+
+                this.editDialog = false;
+
+                // ✅ Reload all vehicules from backend
+                this.getVehiculeById(this.editedVehicule.id_vehicule);
+            },
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update vehicule' });
+            }
         });
     }
 
