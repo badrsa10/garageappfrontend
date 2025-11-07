@@ -29,7 +29,7 @@ import { ServiceService } from '../../../service/services.service';
 import { PieceService } from '../../../service/pieces.service';
 import { MarqueModelService, MarqueModel } from '../../../service/marque-model.service';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+//import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 interface NewHistoriquePayload {
     date_historique: string;
@@ -63,8 +63,8 @@ interface NewHistoriquePayload {
         TagModule,
         SelectModule,
         MultiSelectModule,
-        ConfirmDialogModule,
-        BrowserAnimationsModule
+        ConfirmDialogModule
+        //BrowserAnimationsModule
     ],
     providers: [MessageService, ConfirmationService]
 })
