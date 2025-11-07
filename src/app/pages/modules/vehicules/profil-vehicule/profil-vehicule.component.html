@@ -113,11 +113,15 @@
         <div class="p-6 space-y-4">
             <div class="space-y-1">
                 <label class="block font-medium">Marque</label>
-                <input type="text" pInputText [(ngModel)]="editedVehicule.marque" class="w-full p-2 border rounded-lg" />
+                <div class="p-col-12 p-md-8">
+                    <p-dropdown [options]="modeles" [(ngModel)]="newVehicule.modele" placeholder="Select Modèle" [filter]="true" filterPlaceholder="Search modèle..." class="w-full" appendTo="body" />
+                </div>
             </div>
             <div class="space-y-1">
                 <label class="block text-gray-700 font-medium">Modèle</label>
-                <input type="text" pInputText [(ngModel)]="editedVehicule.modele" class="w-full p-2 border rounded-lg" />
+                <div class="p-col-12 p-md-8">
+                    <input id="annee" type="number" pInputText [(ngModel)]="newVehicule.annee" class="w-full" />
+                </div>
             </div>
             <div class="space-y-1">
                 <label class="block text-gray-700 font-medium">Année</label>
@@ -130,6 +134,12 @@
             <div class="space-y-1">
                 <label class="block text-gray-700 font-medium">Kilométrage</label>
                 <input type="number" pInputText [(ngModel)]="editedVehicule.kilometrage" class="w-full p-2 border rounded-lg" />
+            </div>
+            <div class="space-y-1">
+                <label class="block text-gray-700 font-medium">Client</label>
+                <div class="p-col-12 p-md-8">
+                <p-dropdown [options]="clients" optionLabel="fullName" optionValue="id_client" [(ngModel)]="newVehicule.clientId" placeholder="Select Client" [filter]="true" filterPlaceholder="Search client..." class="w-full" appendTo="body" />
+            </div>
             </div>
         </div>
 

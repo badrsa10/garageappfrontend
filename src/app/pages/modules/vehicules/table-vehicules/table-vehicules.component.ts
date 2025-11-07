@@ -47,7 +47,7 @@ export class TableVehiculesComponent implements OnInit {
 
     marqueModels: MarqueModel[] = [];
     marques: string[] = [];
-    modeles: string[] = [];
+    modeles: string[] = []; 
 
     @ViewChild('filter') filter!: ElementRef;
 

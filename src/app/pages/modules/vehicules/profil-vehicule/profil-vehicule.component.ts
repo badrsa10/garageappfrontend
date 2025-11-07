@@ -27,6 +27,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { Footer, MessageService } from 'primeng/api';
 import { ServiceService } from '../../../service/services.service';
 import { PieceService } from '../../../service/pieces.service';
+import { MarqueModelService,MarqueModel } from '../../../service/marque-model.service';
 
 interface NewHistoriquePayload {
     date_historique: string;
@@ -104,6 +105,12 @@ export class ProfilVehiculeComponent implements OnInit {
 
     selectedHistoriques: VehiculeHistorique[] = [];
 
+    clients: { id_client: string; fullName: string }[] = [];
+
+    marqueModels: MarqueModel[] = [];
+    marques: string[] = [];
+    modeles: string[] = [];
+
     constructor(
         private route: ActivatedRoute,
         private vehiculeService: VehiculeService,
@@ -112,6 +119,7 @@ export class ProfilVehiculeComponent implements OnInit {
         private pieceService: PieceService,
         private messageService: MessageService,
         private clientService: ClientService,
+        private marqueModelService: MarqueModelService,
         private router: Router
     ) {}
 
@@ -139,6 +147,44 @@ export class ProfilVehiculeComponent implements OnInit {
 
         this.serviceService.getServices(1, 100).subscribe((res) => {
             this.services = res.data;
+        });
+        this.fetchClients();
+        this.marqueModelService.getAllMarques().subscribe((marques) => {
+            this.marques = marques;
+        });
+        this.fetchMarqueModels();
+    }
+
+    fetchClients() {
+        this.clientService.getClients(1, 100).subscribe({
+            next: (response) => {
+                this.clients = response.data.map((c) => ({
+                    id_client: c.id_client,
+                    fullName: `${c.nom} ${c.prenom}`
+                }));
+            },
+            error: (err) => {
+                console.error('Error fetching clients:', err);
+            }
+        });
+    }
+
+    fetchMarqueModels() {
+        this.marqueModelService.getAll().subscribe({
+            next: (data) => {
+                this.marqueModels = data;
+                this.marques = [...new Set(data.map((m) => m.marque))];
+            },
+            error: (err) => {
+                console.error('Error fetching marque models:', err);
+            }
+        });
+    }
+
+    onMarqueChange(selectedMarque: string) {
+        this.marqueModelService.getModelsByMarque(selectedMarque).subscribe((models) => {
+            this.modeles = models;
+            this.editedVehicule.modele = '';
         });
     }
 
