@@ -179,6 +179,8 @@ export class TableClientsComponent implements OnInit {
     }
 
     navigateToProfile(clientId: string) {
+        console.log("clientId :",clientId);
+        
         this.router.navigateByUrl(`/modules/client-profile/${clientId}`);
     }
 

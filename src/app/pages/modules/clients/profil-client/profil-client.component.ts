@@ -36,11 +36,14 @@ export class ProfilClientComponent implements OnInit {
   ngOnInit() {
     const clientId = this.route.snapshot.paramMap.get('id');
     if (clientId) {
+      console.log("profile clientId : ",clientId);
       this.clientService.getClientById(clientId).subscribe(client => {
         this.client = client;
+        console.log("profile client : ",client);
       });
       this.vehiculeService.getVehiculesByClientId(clientId).subscribe(vehicules => {
         this.vehicules = vehicules;
+        console.log("profile vehicules : ",vehicules);
       });
     }
   }
