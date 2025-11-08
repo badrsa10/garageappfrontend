@@ -9,12 +9,14 @@ import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { Client, ClientService } from '../../../service/clients.service';
 import { Vehicule, VehiculeService } from '../../../service/vehicules.service';
 import { DropdownModule } from 'primeng/dropdown';
 import { MarqueModel, MarqueModelService } from '../../../service/marque-model.service';
+import { forkJoin } from 'rxjs';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 @Component({
     selector: 'table-vehicules',
@@ -28,8 +30,8 @@ import { MarqueModel, MarqueModelService } from '../../../service/marque-model.s
             font-weight: bold;
         }
     `,
-    providers: [MessageService],
-    imports: [CommonModule, FormsModule, RouterModule, TableModule, DialogModule, ButtonModule, ToastModule, InputTextModule, IconFieldModule, InputIconModule, DropdownModule]
+    providers: [MessageService, ConfirmationService],
+    imports: [CommonModule, FormsModule, RouterModule, TableModule, DialogModule, ButtonModule, ToastModule, InputTextModule, IconFieldModule, InputIconModule, DropdownModule, ConfirmDialogModule]
 })
 export class TableVehiculesComponent implements OnInit {
     vehicules: Vehicule[] = [];
@@ -47,7 +49,7 @@ export class TableVehiculesComponent implements OnInit {
 
     marqueModels: MarqueModel[] = [];
     marques: string[] = [];
-    modeles: string[] = []; 
+    modeles: string[] = [];
 
     @ViewChild('filter') filter!: ElementRef;
 
@@ -56,6 +58,7 @@ export class TableVehiculesComponent implements OnInit {
         private messageService: MessageService,
         private clientService: ClientService,
         private marqueModelService: MarqueModelService,
+        private confirmationService: ConfirmationService,
         private router: Router
     ) {}
 
@@ -152,7 +155,7 @@ export class TableVehiculesComponent implements OnInit {
         this.vehiculeService.createVehicule({ marque, modele, annee, kilometrage, matricule, numeroSerie, clientId }).subscribe({
             next: (created) => {
                 this.messageService.add({ severity: 'success', summary: 'Created', detail: `Vehicule "${created.matricule}" added` });
-                console.log("Creating vehicule with:", this.newVehicule);
+                console.log('Creating vehicule with:', this.newVehicule);
                 this.displayDialog = false;
                 this.fetchVehicules(1);
             },
@@ -193,38 +196,52 @@ export class TableVehiculesComponent implements OnInit {
         });
     }
 
-    deleteSelectedVehicules() {
+    deleteSelectedVehicules(): void {
         if (!this.selectedVehicules.length) return;
 
         const ids = this.selectedVehicules.map((v) => v.id_vehicule);
-        let deletedCount = 0;
+        const deleteRequests = ids.map((id) => this.vehiculeService.deleteVehicule(id));
 
-        ids.forEach((id) => {
-            this.vehiculeService.deleteVehicule(id).subscribe({
-                next: (success) => {
-                    if (success) {
-                        deletedCount++;
-                        if (deletedCount === ids.length) {
-                            this.messageService.add({
-                                severity: 'success',
-                                summary: 'Deleted',
-                                detail: 'Selected vehicules have been deleted'
-                            });
-                            this.fetchVehicules(this.currentPage);
-                        }
-                    }
-                },
-                error: () => {
+        forkJoin(deleteRequests).subscribe({
+            next: (results) => {
+                const failed = results.filter((r) => !r).length;
+
+                if (failed === 0) {
                     this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Failed to delete some vehicules'
+                        severity: 'success',
+                        summary: 'Deleted',
+                        detail: 'All selected vehicules have been deleted'
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Partial Delete',
+                        detail: `${failed} vehicule(s) failed to delete`
                     });
                 }
-            });
-        });
 
-        this.selectedVehicules = [];
+                this.fetchVehicules(this.currentPage);
+                this.selectedVehicules = [];
+            },
+            error: () => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Bulk deletion failed'
+                });
+            }
+        });
+    }
+
+    confirmBulkDeleteVehicules(): void {
+        if (!this.selectedVehicules.length) return;
+
+        this.confirmationService.confirm({
+            message: `Are you sure you want to delete ${this.selectedVehicules.length} selected vehicule(s)?`,
+            header: 'Confirm Bulk Deletion',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => this.deleteSelectedVehicules()
+        });
     }
 
     navigateToVehicule(id: string) {
