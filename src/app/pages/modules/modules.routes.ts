@@ -5,6 +5,7 @@ import { ServicesComponent } from './services/services.component';
 import { PiecesComponent } from './pieces/pieces.component';
 import { VehiculesComponent } from './vehicules/vehicules.component';
 import { ProfilVehiculeComponent } from './vehicules/profil-vehicule/profil-vehicule.component';
+import { FournisseurComponent } from './fournisseur/fournisseur.component';
 
 
 export default [
@@ -14,5 +15,6 @@ export default [
     { path: 'vehicule-profile/:id', data: { breadcrumb: 'Profil' }, component: ProfilVehiculeComponent },
     { path: 'pieces', data: { breadcrumb: 'Pieces' }, component: PiecesComponent },
     { path: 'services', data: { breadcrumb: 'Services' }, component: ServicesComponent },
+    { path: 'fournisseur', data: { breadcrumb: 'Fournisseur' }, component: FournisseurComponent },
     { path: '**', redirectTo: '/notfound' }
 ] as Routes;
