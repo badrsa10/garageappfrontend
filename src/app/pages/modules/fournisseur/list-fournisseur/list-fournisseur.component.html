@@ -1,1 +1,101 @@
-<p>list-fournisseur works!</p>
+<p-toast></p-toast>
+
+<div class="card">
+  <div class="flex justify-content-between mb-3">
+    <h2>Liste des Fournisseurs</h2>
+    <button pButton label="Ajouter Fournisseur" icon="pi pi-plus" (click)="openAddDialog()"></button>
+  </div>
+
+  <div class="mb-3">
+    <span class="p-input-icon-left">
+      <i class="pi pi-search"></i>
+      <input #filter type="text" pInputText placeholder="Rechercher..." (input)="onGlobalFilter(table, $event)" />
+    </span>
+    <button pButton label="Réinitialiser" icon="pi pi-times" class="ml-2" (click)="clear(table)"></button>
+  </div>
+
+  <p-table
+    #table
+    [value]="fournisseurs"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="totalFournisseurs"
+    [lazy]="true"
+    [loading]="loading"
+    [rowsPerPageOptions]="[5, 10, 20]"
+    (onPage)="onPageChange($event)"
+    [(selection)]="selectedFournisseurs"
+    dataKey="id_fournisseur"
+    [responsiveLayout]="'scroll'"
+    [globalFilterFields]="['nom', 'prenom', 'email', 'tel']"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSelectableRow></th>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>Email</th>
+        <th>Téléphone</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-fournisseur>
+      <tr>
+        <td pSelectableRow></td>
+        <td>{{ fournisseur.nom }}</td>
+        <td>{{ fournisseur.prenom }}</td>
+        <td>{{ fournisseur.email }}</td>
+        <td>{{ fournisseur.tel }}</td>
+        <td>
+          <button pButton icon="pi pi-pencil" class="p-button-text" (click)="updateFournisseur(fournisseur)"></button>
+          <button pButton icon="pi pi-trash" class="p-button-text" (click)="deleteFournisseur(fournisseur.id_fournisseur)"></button>
+          <button pButton icon="pi pi-user" class="p-button-text" (click)="navigateToProfile(fournisseur.id_fournisseur)"></button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">Aucun fournisseur trouvé.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <div class="mt-3">
+    <button
+      pButton
+      label="Supprimer sélection"
+      icon="pi pi-trash"
+      class="p-button-danger"
+      [disabled]="!selectedFournisseurs.length"
+      (click)="deleteSelectedFournisseurs()"
+    ></button>
+  </div>
+</div>
+
+<p-dialog header="Ajouter Fournisseur" [(visible)]="displayDialog" [modal]="true" [closable]="true" [dismissableMask]="true">
+  <div class="p-fluid">
+    <div class="field">
+      <label for="nom">Nom</label>
+      <input id="nom" type="text" pInputText [(ngModel)]="newFournisseur.nom" />
+    </div>
+    <div class="field">
+      <label for="prenom">Prénom</label>
+      <input id="prenom" type="text" pInputText [(ngModel)]="newFournisseur.prenom" />
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" pInputText [(ngModel)]="newFournisseur.email" />
+    </div>
+    <div class="field">
+      <label for="tel">Téléphone</label>
+      <input id="tel" type="text" pInputText [(ngModel)]="newFournisseur.tel" />
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Annuler" icon="pi pi-times" class="p-button-text" (click)="displayDialog = false"></button>
+    <button pButton label="Ajouter" icon="pi pi-check" (click)="addFournisseur()"></button>
+  </ng-template>
+</p-dialog>
