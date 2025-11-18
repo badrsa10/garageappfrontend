@@ -15,6 +15,6 @@ export default [
     { path: 'vehicule-profile/:id', data: { breadcrumb: 'Profil' }, component: ProfilVehiculeComponent },
     { path: 'pieces', data: { breadcrumb: 'Pieces' }, component: PiecesComponent },
     { path: 'services', data: { breadcrumb: 'Services' }, component: ServicesComponent },
-    { path: 'fournisseur', data: { breadcrumb: 'Fournisseur' }, component: FournisseurComponent },
+    { path: 'fournisseurs', data: { breadcrumb: 'Fournisseurs' }, component: FournisseurComponent },
     { path: '**', redirectTo: '/notfound' }
 ] as Routes;
